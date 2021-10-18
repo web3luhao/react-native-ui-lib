@@ -91,6 +91,7 @@ export {default as ListItem, ListItemProps} from './components/listItem';
 export {default as LoaderScreen, LoaderScreenProps} from './components/loaderScreen';
 // @ts-expect-error
 export {default as MaskedInput} from './components/maskedInput';
+export {default as SortableList, SortableListProps} from './components/sortableList';
 export {default as Modal, ModalProps, ModalTopBarProps} from './components/modal';
 export {default as Overlay, OverlayTypes} from './components/overlay';
 export {default as PageControl, PageControlProps} from './components/pageControl';
