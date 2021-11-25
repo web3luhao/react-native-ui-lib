@@ -3,6 +3,7 @@ import {isFunction, isUndefined} from 'lodash';
 import React, {useCallback, useRef, useMemo, useEffect, useState} from 'react';
 import {TextStyle, ViewStyle, FlatList, NativeSyntheticEvent, NativeScrollEvent, StyleSheet} from 'react-native';
 import Animated, {useSharedValue, useAnimatedScrollHandler} from 'react-native-reanimated';
+import {RecyclerListView, LayoutProvider, DataProvider, BaseScrollView} from 'recyclerlistview';
 import {Colors, Spacings} from 'style';
 import View from '../../components/view';
 import Fader, {FaderPosition} from '../../components/fader';
@@ -12,7 +13,7 @@ import usePresenter from './usePresenter';
 import Text, {TextProps} from '../../components/text';
 import {asBaseComponent} from '../../commons/new';
 
-const AnimatedFlatList = Animated.createAnimatedComponent(FlatList);
+const AnimatedRecyclerListView = Animated.createAnimatedComponent(RecyclerListView);
 
 enum WheelPickerAlign {
   CENTER = 'center',
@@ -129,6 +130,27 @@ const WheelPicker = ({
   const [scrollOffset, setScrollOffset] = useState(currentIndex * itemHeight);
   const [flatListWidth, setFlatListWidth] = useState(0);
   const keyExtractor = useCallback((item: ItemProps, index: number) => `${item}.${index}`, []);
+  const layoutProvider = useMemo(() =>
+    new LayoutProvider(() => {
+      return 'OnlyOneType';
+    },
+    (type, dim) => {
+      switch (type) {
+        case 'OnlyOneType':
+          dim.width = flatListWidth || Constants.screenWidth; // this was flatListWidth || Spacings.s10 but did not look good
+          dim.height = itemHeight;
+          break;
+        default:
+          dim.width = 0;
+          dim.height = 0;
+      }
+    }),
+  [itemHeight, flatListWidth]);
+
+  const dataProviderMaker = (items: ItemProps[]) =>
+    new DataProvider((item1, item2) => item1.value !== item2.value || item1.label !== item2.label).cloneWithRows(items);
+
+  const dataProvider = useMemo(() => dataProviderMaker(items), [items]);
 
   /* This effect enforce the index to be controlled by selectedValue passed by the user */
   useEffect(() => {
@@ -189,7 +211,8 @@ const WheelPicker = ({
         : {alignSelf: 'center'};
   }, [align]);
 
-  const renderItem = useCallback(({item, index}) => {
+  const renderItem = useCallback((_type, item, index) => {
+    //We have only one view type so not checks are needed here
     return (
       <Item
         index={index}
@@ -261,30 +284,62 @@ const WheelPicker = ({
   return (
     <View testID={testID} bg-white style={style}>
       <View row centerH>
-        <View flexG>
-          <AnimatedFlatList
-            testID={`${testID}.list`}
-            height={height}
-            data={items}
+        <View flexG width="100%">
+          <AnimatedRecyclerListView
+            // testID={`${testID}.list`}
+            // height={height}
+            // data={items}
             // @ts-ignore reanimated2
-            keyExtractor={keyExtractor}
-            scrollEventThrottle={100}
-            onScroll={scrollHandler}
-            onMomentumScrollEnd={onValueChange}
-            showsVerticalScrollIndicator={false}
-            onLayout={scrollToPassedIndex}
+            // keyExtractor={keyExtractor}
+            // scrollEventThrottle={100}
+            // @ts-ignore reanimated2
+            // onScroll={scrollHandler}
+            // onMomentumScrollEnd={onValueChange}
+            // showsVerticalScrollIndicator={false}
+            // onLayout={scrollToPassedIndex}
+            // @ts-ignore
+            // ref={scrollView}
+            // contentContainerStyle={contentContainerStyle}
+            // snapToInterval={itemHeight}
+            // decelerationRate={Constants.isAndroid ? 0.98 : 'normal'}
+            // rowRenderer={renderItem}
+            // getItemLayout={getItemLayout}
+            // initialScrollIndex={currentIndex}
+            // onContentSizeChange={updateFlatListWidth}
+            /* This fixes an issue with RTL when centering flatlist content using alignSelf */
+            // centerContent={align === 'center' && Constants.isRTL}
+
+            testID={`${testID}.list`}
             // @ts-ignore
             ref={scrollView}
-            // @ts-expect-error
             contentContainerStyle={contentContainerStyle}
-            snapToInterval={itemHeight}
-            decelerationRate={Constants.isAndroid ? 0.98 : 'normal'}
-            renderItem={renderItem}
-            getItemLayout={getItemLayout}
-            initialScrollIndex={currentIndex}
-            onContentSizeChange={updateFlatListWidth}
-            /* This fixes an issue with RTL when centering flatlist content using alignSelf */
-            centerContent={align === 'center' && Constants.isRTL}
+            // contentContainerStyle={{height: 200}}
+            // style={{height: 200}}
+            scrollViewProps={{
+              onContentSizeChange: updateFlatListWidth,
+              height,
+              scrollEventThrottle: 100,
+              snapToInterval: itemHeight
+              // containerStyle: {width: flatListWidth}
+              // centerContent: align === 'center' && Constants.isRTL
+              // snapToInterval: itemHeight
+              // refreshControl: (
+              //   <RefreshControl
+              //     refreshing={loaded && isLoading}
+              //     onRefresh={() => refresh()}
+              //   />
+              // ),
+            }}
+            // renderFooter={() => <RenderFooter loading={isLoadingMore} />}
+            // onEndReached={() => loadMore()}
+            // onEndReachedThreshold={1}
+            // externalScrollView={ExternalScrollView}
+            onScroll={scrollHandler}
+            layoutProvider={layoutProvider}
+            dataProvider={dataProvider}
+            rowRenderer={renderItem}
+            // initialOffset={400}
+            // externalScrollView={ExternalScrollView}
           />
         </View>
       </View>
@@ -314,3 +369,22 @@ const styles = StyleSheet.create({
     bottom: 0
   }
 });
+
+class ExternalScrollView extends BaseScrollView {
+  scrollTo = (...args) => {
+    if (this._scrollViewRef) {
+      this._scrollViewRef.scrollToOffset(...args);
+    }
+  };
+
+  render() {
+    return (
+      <FlatList
+        {...this.props}
+        ref={scrollView => {
+          this._scrollViewRef = scrollView;
+        }}
+      />
+    );
+  }
+}
