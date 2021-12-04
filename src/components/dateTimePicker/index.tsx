@@ -3,6 +3,7 @@ import moment from 'moment';
 import React, {Component} from 'react';
 import {StyleProp, StyleSheet, ViewStyle} from 'react-native';
 import {DateTimePickerPackage as RNDateTimePicker} from '../../optionalDependencies';
+import type {DatePickerOptions} from '@react-native-community/datetimepicker';
 import {Constants} from '../../helpers';
 import {Colors} from '../../style';
 import Assets from '../../assets';
@@ -28,7 +29,7 @@ const MODES = {
  */
 /*eslint-enable*/
 
-export interface DateTimePickerProps {
+export interface DateTimePickerProps extends Omit<DatePickerOptions, 'onChange' | 'value'> {
   // TODO: extend TextField props
   // ...TextField.propTypes,
   /**
@@ -43,14 +44,14 @@ export interface DateTimePickerProps {
    * The onChange callback
    */
   onChange?: (date: Date) => void;
-  /**
-   * The minimum date or time value to use
-   */
-  minimumDate?: Date;
-  /**
-   * The maximum date or time value to use
-   */
-  maximumDate?: Date;
+  // /**
+  //  * The minimum date or time value to use
+  //  */
+  // minimumDate?: Date;
+  // /**
+  //  * The maximum date or time value to use
+  //  */
+  // maximumDate?: Date;
   /**
    * The date format for the text display
    */

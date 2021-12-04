@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import { StyleProp, ViewStyle } from 'react-native';
+import type { DatePickerOptions } from '@react-native-community/datetimepicker';
 import { BaseComponentInjectedProps } from '../../commons/new';
 import { DialogProps } from '../dialog';
 /**
@@ -10,7 +11,7 @@ import { DialogProps } from '../dialog';
  * @extendsLink: https://github.com/react-native-community/react-native-datetimepicker#react-native-datetimepicker
  * @gif: https://github.com/wix/react-native-ui-lib/blob/master/demo/showcase/DateTimePicker/DateTimePicker_iOS.gif?raw=true, https://github.com/wix/react-native-ui-lib/blob/master/demo/showcase/DateTimePicker/DateTimePicker_Android.gif?raw=true
  */
-export interface DateTimePickerProps {
+export interface DateTimePickerProps extends Omit<DatePickerOptions, 'onChange' | 'value'> {
     /**
      * The type of picker to display ('date' or 'time')
      */
@@ -23,14 +24,6 @@ export interface DateTimePickerProps {
      * The onChange callback
      */
     onChange?: (date: Date) => void;
-    /**
-     * The minimum date or time value to use
-     */
-    minimumDate?: Date;
-    /**
-     * The maximum date or time value to use
-     */
-    maximumDate?: Date;
     /**
      * The date format for the text display
      */
