@@ -44,14 +44,6 @@ export interface DateTimePickerProps extends Omit<DatePickerOptions, 'onChange' 
    * The onChange callback
    */
   onChange?: (date: Date) => void;
-  // /**
-  //  * The minimum date or time value to use
-  //  */
-  // minimumDate?: Date;
-  // /**
-  //  * The maximum date or time value to use
-  //  */
-  // maximumDate?: Date;
   /**
    * The date format for the text display
    */
