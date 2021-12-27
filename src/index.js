@@ -100,9 +100,8 @@ export default {
     return require('./components/textArea').default;
   },
   get TextField() {
-    // TODO: Start migration by exporting TextFieldMigrator
-    // return require('./components/textField/TextFieldMigrator').default;
-    return require('./components/textField').default;
+    return require('./components/textField/TextFieldMigrator').default;
+    // return require('./components/textField').default;
   },
   // TODO: remove once TextField migration has completed
   get TextFieldMigrator() {
@@ -232,6 +231,9 @@ export default {
   get PureBaseComponent() {
     return require('./commons').PureBaseComponent;
   },
+  get Constants() {
+    return require('./commons').Constants;
+  },
   get UIComponent() {
     return require('./commons').UIComponent;
   },
@@ -251,9 +253,6 @@ export default {
   // Helpers
   get AvatarHelper() {
     return require('./helpers').AvatarHelper;
-  },
-  get Constants() {
-    return require('./helpers').Constants;
   },
   get DocsGenerator() {
     return require('./helpers').DocsGenerator;

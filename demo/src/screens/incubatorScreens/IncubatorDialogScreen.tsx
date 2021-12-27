@@ -1,7 +1,7 @@
 import React, {Component} from 'react';
-import {StyleSheet} from 'react-native';
+import {StyleSheet, ModalProps} from 'react-native';
 import {FlatList} from 'react-native-gesture-handler';
-import {View, Text, Card, Button, Incubator, Colors, BorderRadiuses} from 'react-native-ui-lib'; //eslint-disable-line
+import {View, Text, Card, Button, Incubator, Colors, Spacings} from 'react-native-ui-lib';
 
 interface Item {
   value: string;
@@ -33,10 +33,12 @@ const colors: Item[] = [
 
 export default class IncubatorDialogScreen extends Component {
   state = {visible: false};
+  modalProps: ModalProps = {supportedOrientations: ['portrait', 'landscape']};
+  headerProps: Incubator.DialogHeaderProps = {text: {title: 'Title (swipe here)'}};
 
   renderVerticalItem = ({item}: {item: Item}) => {
     return (
-      <Text text50 margin-20 color={item.value}>
+      <Text text50 marginH-s5 marginV-s2 color={item.value} onPress={this.closeDialog}>
         {item.label}
       </Text>
     );
@@ -54,31 +56,37 @@ export default class IncubatorDialogScreen extends Component {
     this.setState({visible: false});
   };
 
+  onDismiss = () => {
+    this.setState({visible: false});
+  };
+
   render() {
     const {visible} = this.state;
 
     return (
-      <View bg-dark80 flex padding-20>
+      <View bg-grey80 flex padding-20>
         <Card height={100} center padding-20>
           <Text text50>IncubatorDialogScreen</Text>
         </Card>
         <View flex center>
-          <Button marginV-20 label="Open Dialog" onPress={this.openDialog}/>
+          <Button marginV-s5 label="Open Dialog" onPress={this.openDialog}/>
         </View>
-        <Incubator.Dialog visible={visible} onDismiss={this.closeDialog} bottom containerStyle={styles.dialogContainer}>
-          <View style={styles.dialog}>
-            <Text text60 margin-s2>
-              Title (swipe here)
-            </Text>
-            <View height={1} bg-grey40/>
-            <FlatList
-              showsVerticalScrollIndicator={false}
-              style={styles.verticalScroll}
-              data={colors}
-              renderItem={this.renderVerticalItem}
-              keyExtractor={this.keyExtractor}
-            />
-          </View>
+        <Incubator.Dialog
+          useSafeArea
+          visible={visible}
+          onDismiss={this.onDismiss}
+          bottom
+          centerH
+          modalProps={this.modalProps}
+          headerProps={this.headerProps}
+        >
+          <FlatList
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={styles.verticalScroll}
+            data={colors}
+            renderItem={this.renderVerticalItem}
+            keyExtractor={this.keyExtractor}
+          />
         </Incubator.Dialog>
       </View>
     );
@@ -86,17 +94,7 @@ export default class IncubatorDialogScreen extends Component {
 }
 
 const styles = StyleSheet.create({
-  dialogContainer: {
-    bottom: 20,
-    alignSelf: 'center'
-  },
-  dialog: {
-    backgroundColor: Colors.white,
-    width: 200,
-    height: 300,
-    borderRadius: BorderRadiuses.br20
-  },
   verticalScroll: {
-    marginTop: 20
+    paddingVertical: Spacings.s2
   }
 });

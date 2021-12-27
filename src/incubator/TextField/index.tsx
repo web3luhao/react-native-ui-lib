@@ -20,6 +20,7 @@ import {
 } from '../../commons/new';
 import View from '../../components/view';
 import {Colors} from '../../style';
+import {useMeasure} from '../../hooks';
 import {ValidationMessagePosition, Validator} from './types';
 import {shouldHidePlaceholder} from './Presenter';
 import Input, {InputProps} from './Input';
@@ -151,11 +152,20 @@ const TextField = (props: InternalTextFieldProps) => {
     children,
     ...others
   } = usePreset(props);
+  const {ref: leadingAccessoryRef, measurements: leadingAccessoryMeasurements} = useMeasure();
   const {onFocus, onBlur, onChangeText, fieldState, validateField} = useFieldState(others);
 
   const context = useMemo(() => {
     return {...fieldState, disabled: others.editable === false, validateField};
   }, [fieldState, others.editable, validateField]);
+
+  const leadingAccessoryClone = useMemo(() => {
+    if (leadingAccessory) {
+      return React.cloneElement(leadingAccessory, {
+        ref: leadingAccessoryRef
+      });
+    }
+  }, [leadingAccessory]);
 
   const {margins, paddings, typography, color} = modifiers;
   const typographyStyle = useMemo(() => omit(typography, 'lineHeight'), [typography]);
@@ -174,6 +184,7 @@ const TextField = (props: InternalTextFieldProps) => {
           labelProps={labelProps}
           floatingPlaceholder={floatingPlaceholder}
           validationMessagePosition={validationMessagePosition}
+          testID={`${props.testID}.label`}
         />
         {validationMessagePosition === ValidationMessagePosition.TOP && (
           <ValidationMessage
@@ -184,34 +195,35 @@ const TextField = (props: InternalTextFieldProps) => {
             testID={`${props.testID}.validationMessage`}
           />
         )}
-        <View style={[paddings, fieldStyle]}>
-          <View row centerV>
-            {leadingAccessory}
-            <View flexG>
-              {floatingPlaceholder && (
-                <FloatingPlaceholder
-                  placeholder={placeholder}
-                  floatingPlaceholderStyle={[typographyStyle, floatingPlaceholderStyle]}
-                  floatingPlaceholderColor={floatingPlaceholderColor}
-                  floatOnFocus={floatOnFocus}
-                  validationMessagePosition={validationMessagePosition}
-                />
-              )}
-              {children || (
-                <Input
-                  placeholderTextColor={hidePlaceholder ? 'transparent' : Colors.grey30}
-                  {...others}
-                  style={[typographyStyle, colorStyle, others.style]}
-                  onFocus={onFocus}
-                  onBlur={onBlur}
-                  onChangeText={onChangeText}
-                  placeholder={placeholder}
-                  hint={hint}
-                />
-              )}
-            </View>
-            {trailingAccessory}
+        <View style={[paddings, fieldStyle]} row centerV>
+          {/* <View row centerV> */}
+          {leadingAccessoryClone}
+          <View flex row>
+            {floatingPlaceholder && (
+              <FloatingPlaceholder
+                placeholder={placeholder}
+                floatingPlaceholderStyle={[typographyStyle, floatingPlaceholderStyle]}
+                floatingPlaceholderColor={floatingPlaceholderColor}
+                floatOnFocus={floatOnFocus}
+                validationMessagePosition={validationMessagePosition}
+                extraOffset={leadingAccessoryMeasurements?.width}
+              />
+            )}
+            {children || (
+              <Input
+                placeholderTextColor={hidePlaceholder ? 'transparent' : Colors.grey30}
+                {...others}
+                style={[typographyStyle, colorStyle, others.style]}
+                onFocus={onFocus}
+                onBlur={onBlur}
+                onChangeText={onChangeText}
+                placeholder={placeholder}
+                hint={hint}
+              />
+            )}
           </View>
+          {trailingAccessory}
+          {/* </View> */}
         </View>
         <View row spread>
           {validationMessagePosition === ValidationMessagePosition.BOTTOM && (

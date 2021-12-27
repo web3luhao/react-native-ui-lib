@@ -1,10 +1,9 @@
 import React, {useContext} from 'react';
 import {TextInput, TextInputProps, StyleSheet, Platform} from 'react-native';
-import {ForwardRefInjectedProps} from '../../commons/new';
+import {Constants, ForwardRefInjectedProps} from '../../commons/new';
 import {ColorType} from './types';
 import {getColorByState} from './Presenter';
 import {Colors} from '../../style';
-import {Constants} from '../../helpers';
 import FieldContext from './FieldContext';
 import useImperativeInputHandle from './useImperativeInputHandle';
 
@@ -41,7 +40,7 @@ const Input = ({
   formatter,
   ...props
 }: InputProps & ForwardRefInjectedProps) => {
-  const inputRef = useImperativeInputHandle(forwardedRef);
+  const inputRef = useImperativeInputHandle(forwardedRef, {onChangeText: props.onChangeText});
   const context = useContext(FieldContext);
   const placeholder = !context.isFocused ? props.placeholder : hint || props.placeholder;
   const inputColor = getColorByState(color, context);
@@ -66,6 +65,7 @@ const Input = ({
 
 const styles = StyleSheet.create({
   input: {
+    flexGrow: 1,
     textAlign: Constants.isRTL ? 'right' : 'left',
     // Setting paddingTop/Bottom separately fix height issues on iOS with multiline
     paddingTop: 0,

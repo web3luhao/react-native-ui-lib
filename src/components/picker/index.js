@@ -8,8 +8,7 @@ import _ from 'lodash';
 import PropTypes from 'prop-types';
 import React, {Component} from 'react';
 import memoize from 'memoize-one';
-import {asBaseComponent, forwardRef} from '../../commons';
-import {Constants} from '../../helpers';
+import {Constants, asBaseComponent, forwardRef} from '../../commons';
 import {LogService} from '../../services';
 // import View from '../../components/view';
 import Modal from '../modal';
@@ -447,7 +446,8 @@ class Picker extends Component {
       enableModalBlur,
       topBarProps,
       pickerModalProps,
-      value
+      value,
+      editable
     } = this.props;
 
     if (useNativePicker) {
@@ -489,8 +489,9 @@ class Picker extends Component {
           modalProps={modalProps}
           expandableContent={this.renderExpandableModal()}
           renderCustomOverlay={renderCustomModal ? this.renderCustomModal : undefined}
-          testID={renderCustomModal ? testID : undefined}
+          testID={testID}
           {...customPickerProps}
+          disabled={editable === false}
         >
           {renderPicker ? (
             renderPicker(value, this.getLabel(value))
@@ -498,6 +499,7 @@ class Picker extends Component {
             <TextField
               ref={forwardedRef}
               {...textInputProps}
+              testID={`${testID}.input`}
               containerStyle={[paddings, margins, positionStyle, containerStyle]}
               {...this.getAccessibilityInfo()}
               importantForAccessibility={'no-hide-descendants'}
