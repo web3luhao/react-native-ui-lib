@@ -14,6 +14,9 @@ import usePresenter from './usePresenter';
 
 const AnimatedRecyclerListView = Animated.createAnimatedComponent(RecyclerListView);
 
+const dataProviderMaker = (items: ItemProps[]) =>
+  new DataProvider((item1, item2) => item1.value !== item2.value || item1.label !== item2.label).cloneWithRows(items);
+
 export enum WheelPickerAlign {
   CENTER = 'center',
   RIGHT = 'right',
@@ -147,9 +150,6 @@ const WheelPicker = ({
     }),
   [itemHeight, flatListWidth]);
 
-  const dataProviderMaker = (items: ItemProps[]) =>
-    new DataProvider((item1, item2) => item1.value !== item2.value || item1.label !== item2.label).cloneWithRows(items);
-
   const dataProvider = useMemo(() => dataProviderMaker(items), [items]);
 
   useEffect(() => {
@@ -192,7 +192,8 @@ const WheelPicker = ({
     //@ts-expect-error for some reason scrollToOffset isn't recognized
     if (isFunction(scrollView.current?.scrollToOffset)) {
       //@ts-expect-error
-      scrollView.current?.scrollToOffset({offset: index * itemHeight, animated});
+      // scrollView.current?.scrollToOffset({offset: index * itemHeight, animated});
+      scrollView.current?.scrollToOffset(0, index * itemHeight, animated);
     } else {
       //@ts-expect-error
       scrollView.current?.getNode()?.scrollToOffset({offset: index * itemHeight, animated});
