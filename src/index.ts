@@ -95,11 +95,7 @@ export {default as SortableList, SortableListProps} from './components/sortableL
 export {default as Modal, ModalProps, ModalTopBarProps} from './components/modal';
 export {default as Overlay, OverlayTypes} from './components/overlay';
 export {default as PageControl, PageControlProps} from './components/pageControl';
-export {
-  default as PanDismissibleView,
-  PanDismissibleViewProps,
-  DismissibleAnimationProps
-} from './components/panningViews/panDismissibleView';
+export {default as PanDismissibleView, PanDismissibleViewProps, DismissibleAnimationProps} from './components/panningViews/panDismissibleView';
 export {default as PanGestureView, PanGestureViewProps} from './components/panningViews/panGestureView';
 export {default as PanListenerView, PanListenerViewProps} from './components/panningViews/panListenerView';
 export {default as PanningContext} from './components/panningViews/panningContext';
