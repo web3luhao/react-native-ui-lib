@@ -28,9 +28,9 @@ export default class MarqueeScreen extends Component {
           </Marquee>
         </View>
 
-        <View bg-blue60 marginT-50 marginL-50 width={200}>
-          <Marquee width={50} direction={'left'}>
-            <Text text50>Test</Text>
+        <View bg-blue60 marginT-50 marginL-50 width={100}>
+          <Marquee width={400} direction={'left'}>
+            <Text text50>Very very long text</Text>
           </Marquee>
         </View>
       </>

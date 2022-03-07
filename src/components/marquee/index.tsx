@@ -62,6 +62,6 @@ export default asBaseComponent<MarqueeProps>(Marquee);
 
 const styles = StyleSheet.create({
   container: {
-    overflow: 'hidden'
+    // overflow: 'hidden'
   }
 });
