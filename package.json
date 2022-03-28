@@ -29,7 +29,7 @@
     "build:dev": "tsc --p tsconfig.dev.json",
     "build:src": "./node_modules/.bin/babel src --out-dir src --config-file ./src/.babelrc.json --extensions '.ts,.tsx' --ignore 'src/index.ts'",
     "build:lib": "./node_modules/.bin/babel lib --out-dir lib --config-file ./src/.babelrc.json --extensions '.ts,.tsx'",
-    "build:exports": "npm run build:src && npm run build:lib",
+    "build:exports": "npm run build:src && npm run build:lib && ./node_modules/.bin/babel src/index.js -o ./src/index.js --config-file ./src/babel.lazy-config.js",
     "build:packages": "node scripts/buildPackages.js",
     "build": "tsc --p tsconfig.build.json && npm run build:exports && npm run build:packages",
     "prepush": "npm run build:dev && npm run test",
@@ -61,6 +61,7 @@
   "devDependencies": {
     "@babel/cli": "^7.16.8",
     "@babel/core": "^7.12.9",
+    "@babel/plugin-transform-modules-commonjs": "^7.17.7",
     "@babel/preset-env": "^7.16.11",
     "@babel/preset-react": "^7.10.1",
     "@babel/runtime": "^7.12.5",
