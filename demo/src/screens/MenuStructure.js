@@ -2,6 +2,7 @@ export const navigationData = {
   Foundation: {
     title: 'Foundation',
     screens: [
+      {title: 'Playground', tags: 'playground', screen: 'unicorn.PlaygroundScreen'},
       {title: 'Border Radius', tags: 'corener border radius circle', screen: 'unicorn.style.BorderRadiusesScreen'},
       {title: 'Colors', tags: 'palette rgb hex', screen: 'unicorn.style.ColorsScreen'},
       {title: 'Dark Mode', tags: 'dark mode colors', screen: 'unicorn.style.DarkModeScreen'},

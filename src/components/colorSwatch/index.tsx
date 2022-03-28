@@ -63,10 +63,13 @@ class ColorSwatch extends PureComponent<Props> {
     this.animateSwatch(1);
   }
 
-  componentDidUpdate(prevProps: Props) {
+  componentDidUpdate(prevProps: Props, prevState) {
     if (prevProps.selected !== this.props.selected) {
       this.animateCheckmark(this.props.selected);
     }
+
+    Object.entries(this.props).forEach(([key, val]) => prevProps[key] !== val && console.log(`Prop '${key}' changed`));
+    Object.entries(this.state).forEach(([key, val]) => prevState[key] !== val && console.log(`State '${key}' changed`));
   }
 
   animateSwatch(newValue: number) {
