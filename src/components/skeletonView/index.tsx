@@ -4,7 +4,7 @@ import {StyleSheet, Animated, Easing, StyleProp, ViewStyle, AccessibilityProps} 
 import {BorderRadiuses, Colors, Dividers, Spacings} from '../../style';
 import {createShimmerPlaceholder, LinearGradientPackage} from 'optionalDeps';
 import View from '../view';
-import {Constants, asBaseComponent} from '../../commons/new';
+import {Constants, asBaseComponent, BaseComponentInjectedProps, MarginModifiers} from '../../commons/new';
 import {extractAccessibilityProps} from '../../commons/modifiers';
 
 const LinearGradient = LinearGradientPackage?.default;
@@ -53,7 +53,7 @@ export interface SkeletonListProps {
   renderEndContent?: () => React.ReactElement | undefined;
 }
 
-export interface SkeletonViewProps extends AccessibilityProps {
+export interface SkeletonViewProps extends AccessibilityProps, MarginModifiers {
   /**
    * The content has been loaded, start fading out the skeleton and fading in the content
    */
@@ -129,6 +129,11 @@ export interface SkeletonViewProps extends AccessibilityProps {
    */
   width?: number;
   /**
+   * The colors of the skeleton view, the array length has to be >=2
+   * default: [Colors.grey70, Colors.grey60, Colors.grey70]
+   */
+  colors?: string[]
+  /**
    * The border radius of the skeleton view
    */
   borderRadius?: number;
@@ -136,6 +141,10 @@ export interface SkeletonViewProps extends AccessibilityProps {
    * Whether the skeleton is a circle (will override the borderRadius)
    */
   circle?: boolean;
+  /** 
+   * Additional style to the skeleton view
+   */
+  shimmerStyle?: StyleProp<ViewStyle>;
   /**
    * Override container styles
    */
@@ -157,7 +166,10 @@ interface SkeletonState {
  * @image: https://github.com/wix/react-native-ui-lib/blob/master/demo/showcase/Skeleton/Skeleton.gif?raw=true
  * @notes: View requires installing the 'react-native-shimmer-placeholder' and 'react-native-linear-gradient' library
  */
-class SkeletonView extends Component<SkeletonViewProps, SkeletonState> {
+
+type InternalSkeletonViewProps = SkeletonViewProps & BaseComponentInjectedProps;
+
+class SkeletonView extends Component<InternalSkeletonViewProps, SkeletonState> {
   static defaultProps = {
     size: Size.SMALL,
     // listProps: {size: Size.SMALL}, TODO: once size is deprecated remove it and add this
@@ -170,7 +182,7 @@ class SkeletonView extends Component<SkeletonViewProps, SkeletonState> {
 
   fadeInAnimation?: Animated.CompositeAnimation;
 
-  constructor(props: SkeletonViewProps) {
+  constructor(props: InternalSkeletonViewProps) {
     super(props);
 
     this.state = {
@@ -193,7 +205,7 @@ class SkeletonView extends Component<SkeletonViewProps, SkeletonState> {
     }
   }
 
-  componentDidUpdate(prevProps: SkeletonViewProps) {
+  componentDidUpdate(prevProps: InternalSkeletonViewProps) {
     if (this.props.showContent && !prevProps.showContent) {
       this.fadeInAnimation?.stop();
       this.fade(false, this.showChildren);
@@ -226,20 +238,22 @@ class SkeletonView extends Component<SkeletonViewProps, SkeletonState> {
 
   getDefaultSkeletonProps = (input?: {circleOverride: boolean; style: StyleProp<ViewStyle>}) => {
     const {circleOverride, style} = input || {};
-    const {circle, width = 0, height = 0} = this.props;
+    const {circle, colors, width, height = 0, shimmerStyle} = this.props;
     let {borderRadius} = this.props;
     let size;
+
     if (circle || circleOverride) {
       borderRadius = BorderRadiuses.br100;
-      size = Math.max(width, height);
-    }
+      size = Math.max(width || 0, height);
+    } 
 
     return {
-      shimmerColors: [Colors.grey70, Colors.grey60, Colors.grey70],
+      shimmerColors: colors || [Colors.$backgroundNeutral, Colors.$backgroundNeutralMedium, Colors.$backgroundNeutral],
       isReversed: Constants.isRTL,
       style: [{borderRadius}, style],
       width: size || width,
-      height: size || height
+      height: size || height,
+      shimmerStyle
     };
   };
 
@@ -352,6 +366,7 @@ class SkeletonView extends Component<SkeletonViewProps, SkeletonState> {
   renderAdvanced = () => {
     const {children, renderContent, showContent, style, ...others} = this.props;
     const data = showContent && _.isFunction(renderContent) ? renderContent(this.props) : children;
+    
     return (
       <View style={style} {...this.getAccessibilityProps('Loading content')}>
         <ShimmerPlaceholder {...this.getDefaultSkeletonProps()} {...others}>
@@ -407,22 +422,68 @@ class SkeletonView extends Component<SkeletonViewProps, SkeletonState> {
       return null;
     }
 
-    const {times, timesKey, renderContent, testID} = this.props;
+    const {
+      times,
+      timesKey,
+      renderContent,
+      showContent,
+      customValue,
+      contentData,
+      template,
+      listProps,
+      size,
+      contentType,
+      hideSeparator,
+      showLastSeparator,
+      height,
+      width,
+      colors,
+      borderRadius,
+      circle,
+      style,
+      testID,
+      ...others
+    } = this.props;
+
+    const passedProps = {
+      showContent,
+      renderContent,
+      customValue,
+      contentData,
+      template,
+      listProps,
+      size,
+      contentType,
+      hideSeparator,
+      showLastSeparator,
+      height,
+      width,
+      colors,
+      borderRadius,
+      circle,
+      style,
+      testID
+    };
 
     if (times) {
-      return _.times(times, index => {
-        const key = timesKey ? `${timesKey}-${index}` : `${index}`;
-        return (
-          <SkeletonView
-            {...this.props}
-            key={key}
-            testID={`${testID}-${index}`}
-            renderContent={index === 0 ? renderContent : this.renderNothing}
-            hideSeparator={this.hideSeparator || (!this.showLastSeparator && index === times - 1)}
-            times={undefined}
-          />
-        );
-      });
+      return (
+        <View {...others}>
+          {_.times(times, index => {
+            const key = timesKey ? `${timesKey}-${index}` : `${index}`;
+            return (
+              <SkeletonView
+                modifiers={{}}
+                {...passedProps}
+                key={key}
+                testID={`${testID}-${index}`}
+                renderContent={index === 0 ? renderContent : this.renderNothing}
+                hideSeparator={this.hideSeparator || (!this.showLastSeparator && index === times - 1)}
+                times={undefined}
+              />
+            );
+          })}
+        </View>
+      );
     } else {
       return this.renderSkeleton();
     }

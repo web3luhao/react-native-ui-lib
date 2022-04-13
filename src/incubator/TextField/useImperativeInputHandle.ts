@@ -7,6 +7,7 @@ const useImperativeInputHandle = (ref: React.Ref<any>, props: Pick<TextInputProp
   const context = useContext(FieldContext);
   useImperativeHandle(ref, () => {
     return {
+      isFocused: () => inputRef.current?.isFocused(),
       focus: () => inputRef.current?.focus(),
       blur: () => inputRef.current?.blur(),
       clear: () => {
@@ -15,7 +16,7 @@ const useImperativeInputHandle = (ref: React.Ref<any>, props: Pick<TextInputProp
         props.onChangeText?.('');
       },
       validate: () => {
-        context.validateField();
+        return context.validateField();
       }
     };
   });

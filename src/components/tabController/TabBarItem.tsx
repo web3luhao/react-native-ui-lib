@@ -10,8 +10,8 @@ import TabBarContext from './TabBarContext';
 
 const TouchableOpacity = Reanimated.createAnimatedComponent(_TouchableOpacity);
 
-const DEFAULT_LABEL_COLOR = Colors.black;
-const DEFAULT_SELECTED_LABEL_COLOR = Colors.primary;
+const DEFAULT_LABEL_COLOR = Colors.$textDefault;
+const DEFAULT_SELECTED_LABEL_COLOR = Colors.$textPrimary;
 
 export interface TabControllerItemProps {
   /**
@@ -108,8 +108,8 @@ interface Props extends TabControllerItemProps {
 export default function TabBarItem({
   index,
   label,
-  labelColor,
-  selectedLabelColor,
+  labelColor = DEFAULT_LABEL_COLOR,
+  selectedLabelColor = DEFAULT_SELECTED_LABEL_COLOR,
   labelStyle,
   selectedLabelStyle,
   icon,
@@ -131,8 +131,13 @@ export default function TabBarItem({
   const sharedLabelStyle = useSharedValue(JSON.parse(JSON.stringify(labelStyle)));
   const sharedSelectedLabelStyle = useSharedValue(JSON.parse(JSON.stringify(selectedLabelStyle)));
 
+  // NOTE: We clone these color values in refs because they might contain a PlatformColor value
+  //       which throws an error (see https://github.com/software-mansion/react-native-reanimated/issues/3164)
+  const inactiveColor = useRef(_.cloneDeep(labelColor));
+  const activeColor = useRef(_.cloneDeep(!ignore ? selectedLabelColor : inactiveColor.current));
+
   useEffect(() => {
-    if (itemWidth.current) {
+    if (props.width) {
       props.onLayout?.({nativeEvent: {layout: {x: 0, y: 0, width: itemWidth.current, height: 0}}} as LayoutChangeEvent,
         index);
     }
@@ -165,21 +170,15 @@ export default function TabBarItem({
 
   const animatedLabelColorStyle = useAnimatedStyle(() => {
     const isActive = currentPage.value === index;
-    const inactiveColor = labelColor || DEFAULT_LABEL_COLOR;
-    const activeColor = !ignore ? selectedLabelColor || DEFAULT_SELECTED_LABEL_COLOR : inactiveColor;
-
     return {
-      color: isActive ? activeColor : inactiveColor
+      color: isActive ? activeColor.current : inactiveColor.current
     };
   });
 
   const animatedIconStyle = useAnimatedStyle(() => {
     const isActive = currentPage.value === index;
-    const inactiveColor = labelColor || DEFAULT_LABEL_COLOR;
-    const activeColor = !ignore ? selectedLabelColor || DEFAULT_SELECTED_LABEL_COLOR : inactiveColor;
-
     return {
-      tintColor: isActive ? activeColor : inactiveColor
+      tintColor: isActive ? activeColor.current : inactiveColor.current
     };
   });
 
@@ -193,6 +192,7 @@ export default function TabBarItem({
       // @ts-expect-error
       ref={itemRef}
       style={_style}
+      bg-$backgroundElevated
       onLayout={onLayout}
       activeBackgroundColor={activeBackgroundColor}
       activeOpacity={activeOpacity}
@@ -212,7 +212,7 @@ export default function TabBarItem({
         </Reanimated.Text>
       )}
       {badge && (
-        <Badge backgroundColor={Colors.red30} size={20} {...badge} containerStyle={styles.badge}/>
+        <Badge backgroundColor={Colors.$backgroundDangerHeavy} size={20} {...badge} containerStyle={styles.badge}/>
       )}
       {trailingAccessory}
     </TouchableOpacity>

@@ -1,6 +1,6 @@
+const _ = require('lodash');
 const childProcess = require('child_process');
 const fs = require('fs');
-const _ = require('lodash');
 
 const COMPONENTS_DOCS_DIR = './docs/components';
 
@@ -18,30 +18,29 @@ if (!fs.existsSync(COMPONENTS_DOCS_DIR)) {
 }
 
 const compoundComponents = components.filter(c => c.name.includes('.'));
-const parentComponents = _.chain(compoundComponents)
-  .map(c => c.name.split('.')[0])
-  .uniq()
-  .value();
+const parentComponents = _.flow(components => _.map(components, c => c.name.split('.')[0]), _.uniq)(compoundComponents);
 
 components.forEach(component => {
   const [componentName, componentParentName] = getComponentNameParts(component.name);
   const isParentComponent = parentComponents.includes(componentName);
+  const isIncubatorComponent = component.category === 'incubator';
 
   let content = '';
+
   /* Markdown Front Matter */
   content += `---\n`;
   if (isParentComponent) {
     content += `sidebar_position: 1\n`;
   }
   content += `id: ${component.name}\n`;
-  content += `title: ${component.name}\n`;
+  content += `title: ${isIncubatorComponent ? 'Incubator.' : ''}${component.name}\n`;
   content += `sidebar_label: ${componentName}\n`;
   content += `---\n`;
 
   /* General */
   content += `${component.description}  \n`;
   content += `[(code example)](${component.example})\n`;
-
+  
   if (component.extends) {
     let extendsText = component.extends?.join(', ');
     if (component.extendsLink) {
@@ -61,13 +60,28 @@ components.forEach(component => {
     content += `:::\n`;
   }
 
+  if (component.caution) {
+    content += `:::caution\n`;
+    content += `${component.caution}\n`;
+    content += `:::\n`;
+  }
+
   /* Images */
-  content += `<div style={{display: 'flex', flexDirection: 'row', overflowX: 'auto', maxHeight: '500px', alignItems: 'center'}}>`;
+  content += 
+  `<div style={{display: 'flex', flexDirection: 'row', overflowX: 'auto', maxHeight: '500px', alignItems: 'center'}}>`;
   component.images?.forEach(image => {
     content += `<img style={{maxHeight: '420px'}} src={'${image}'}/>`;
     content += '\n\n';
   });
   content += '</div>\n\n';
+
+  /* Snippet */
+  if (component.snippet) {
+    content += `### Usage\n`;
+    content += '```\n';
+    content += component.snippet?.map(item => _.replace(item, new RegExp(/\$[1-9]/, 'g'), '')).join('\n');
+    content += '\n```\n';
+  }
 
   /* Props */
   content += `## API\n`;

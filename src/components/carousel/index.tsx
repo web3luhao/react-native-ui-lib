@@ -273,7 +273,7 @@ class Carousel extends Component<CarouselProps, CarouselState> {
       layout: {width: containerWidth, height: containerHeight}
     }
   }: LayoutChangeEvent) => {
-    const {pageWidth = containerWidth, pageHeight = containerHeight} = this.props;
+    const {pageWidth = containerWidth, pageHeight = containerHeight, horizontal} = this.props;
 
     const initialOffset = presenter.calcOffset(this.props, {
       currentPage: this.state.currentPage,
@@ -281,7 +281,11 @@ class Carousel extends Component<CarouselProps, CarouselState> {
       pageHeight
     });
 
-    this.setState({containerWidth, pageWidth, pageHeight, initialOffset});
+    // NOTE: This is to avoid resetting containerWidth to 0 - an issue that happens
+    // on Android in some case when onLayout is re-triggered
+    if ((horizontal && containerWidth) || (!horizontal && containerHeight)) {
+      this.setState({containerWidth, pageWidth, pageHeight, initialOffset});
+    }
   };
 
   onMomentumScrollEnd = () => {
@@ -405,7 +409,13 @@ class Carousel extends Component<CarouselProps, CarouselState> {
     const {pageControlPosition, pageControlProps = {}} = this.props;
 
     if (pageControlPosition) {
-      const {size = 6, spacing = 8, color = Colors.grey20, inactiveColor = Colors.grey60, ...others} = pageControlProps;
+      const {
+        size = 6,
+        spacing = 8,
+        color = Colors.$backgroundNeutralHeavy,
+        inactiveColor = Colors.$backgroundNeutralMedium,
+        ...others
+      } = pageControlProps;
       const pagesCount = presenter.getChildrenLength(this.props);
       const containerStyle =
         pageControlPosition === PageControlPosition.UNDER

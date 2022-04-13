@@ -3,13 +3,13 @@ import React, {useCallback} from 'react';
 import {StyleSheet, StyleProp, ViewStyle, ViewProps, ImageStyle, TextStyle, ImageSourcePropType} from 'react-native';
 import Assets from '../../assets';
 import {asBaseComponent} from '../../commons/new';
-import {BorderRadiuses, Spacings} from 'style';
+import {BorderRadiuses, Spacings, Colors} from 'style';
 import Avatar, {AvatarProps} from '../avatar';
 import Badge, {BadgeProps} from '../badge';
-import Image, {ImageProps} from '../image';
 import Text from '../text';
 import TouchableOpacity, {TouchableOpacityProps} from '../touchableOpacity';
 import View from '../view';
+import Icon, {IconProps} from '../icon';
 
 
 export type ChipProps = ViewProps & TouchableOpacityProps & {
@@ -76,7 +76,7 @@ export type ChipProps = ViewProps & TouchableOpacityProps & {
   /**
    * Additional icon props
    */
-  iconProps?: Omit<ImageProps, 'source'>;
+  iconProps?: Omit<IconProps, 'source'>;
   /**
    * Icon style
    */
@@ -145,7 +145,7 @@ const Chip = ({
   borderRadius = BorderRadiuses.br100,
   containerStyle,
   onDismiss,
-  dismissColor,
+  dismissColor = Colors.$iconDefault,
   dismissIcon = Assets.icons.x,
   dismissIconStyle,
   dismissContainerStyle,
@@ -169,10 +169,10 @@ const Chip = ({
     const isLeftIcon = iconPosition === 'left';
 
     return (
-      <Image
-      // @ts-ignore
+      <Icon
         source={isLeftIcon ? iconSource : rightIconSource}
         testID={`${testID}.icon`}
+        tintColor={Colors.$iconDefault}
         {...iconProps}
         style={[getMargins('iconSource'), iconStyle]}
       />
@@ -201,8 +201,7 @@ const Chip = ({
         hitSlop={{top: 10, bottom: 10, left: 10, right: 10}}
         testID={`${testID}.dismiss`}
       >
-        <Image
-        // @ts-ignore
+        <Icon
           source={dismissIcon}
           tintColor={dismissColor}
           style={[dismissIconStyle]}
@@ -230,6 +229,7 @@ const Chip = ({
       <Text
         text90M
         numberOfLines={1}
+        $textDefault
         style={[styles.label, getMargins('label'), labelStyle]}
         testID={`${testID}.label`}
       >
@@ -340,6 +340,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     flexDirection: 'row',
     borderWidth: 1,
+    borderColor: Colors.$backgroundInverted,
     borderRadius: BorderRadiuses.br100
   },
   label: {

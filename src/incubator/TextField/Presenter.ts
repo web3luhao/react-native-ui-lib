@@ -1,7 +1,6 @@
 import _ from 'lodash';
 import {Colors} from './../../style';
-import {FieldContextType} from './FieldContext';
-import {ColorType, Validator} from './types';
+import {ColorType, Validator, FieldContextType} from './types';
 // TODO: Fix this import after moving all TextField types to a single file after we move to the new docs
 import {TextFieldProps} from './index';
 import formValidators from './validators';
@@ -19,7 +18,7 @@ export function getColorByState(color?: ColorType, context?: FieldContextType) {
       finalColor = color?.focus;
     }
 
-    finalColor = finalColor || color?.default || Colors.grey10;
+    finalColor = finalColor || color?.default || Colors.$textDefault;
   }
 
   return finalColor;

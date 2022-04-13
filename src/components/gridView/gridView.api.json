@@ -18,6 +18,19 @@
       "name": "keepItemSize",
       "type": "boolean",
       "description": "whether to keep the items initial size when orientation changes, in which case the apt number of columns will be calculated automatically."
+    },
+    {
+      "name": "renderCustomItem",
+      "type": "(item: GridListItemProps) => React.ReactElement",
+      "description": "Pass to render a custom item"
     }
+  ],
+  "snippet": [
+    "<GridView",
+    " items={[{title: 'item 1', onPress: () => console.log('item 1 pressed')}, {title: 'item 2', onPress: () => console.log('item 2 pressed')}, ]$1}",
+    " numColumns={2$2}",
+    " lastItemLabel={'+'$3}",
+    " lastItemOverlayColor={'Colors.rgba(Colors.blue30)'$4}",
+    "/>"
   ]
 }

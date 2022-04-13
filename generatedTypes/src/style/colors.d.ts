@@ -3,6 +3,7 @@ import tinycolor from 'tinycolor2';
 import { Schemes, SchemeType } from './scheme';
 export declare class Colors {
     [key: string]: any;
+    private shouldSupportDarkMode;
     constructor();
     /**
      * Load custom set of colors
@@ -29,6 +30,11 @@ export declare class Colors {
      */
     setScheme(scheme: SchemeType): void;
     /**
+     * Support listening to Appearance changes
+     * and change the design tokens accordingly
+     */
+    supportDarkMode(): void;
+    /**
      * Add alpha to hex or rgb color
      * arguments:
      * p1 - hex color / R part of RGB
@@ -44,6 +50,7 @@ export declare class Colors {
     getColorName(color: string): any;
     getTintedColorForDynamicHex(color: string, tintKey: string | number): string;
     generateColorPalette: ((color: any) => string[]) & _.MemoizedFunction;
+    shouldGenerateDarkerPalette(color: string): boolean;
     isDark(color: string): boolean;
     isValidHex(string: string): boolean;
     getHexString(color: tinycolor.ColorInput): string;
@@ -52,6 +59,8 @@ export declare class Colors {
     areEqual(colorA: string, colorB: string): boolean;
 }
 declare const colorObject: Colors & {
+    grey1: string;
+    grey5: string;
     grey10: string;
     grey20: string;
     grey30: string;
@@ -60,6 +69,8 @@ declare const colorObject: Colors & {
     grey60: string;
     grey70: string;
     grey80: string;
+    blue1: string;
+    blue5: string;
     blue10: string;
     blue20: string;
     blue30: string;
@@ -76,6 +87,8 @@ declare const colorObject: Colors & {
     cyan60: string;
     cyan70: string;
     cyan80: string;
+    green1: string;
+    green5: string;
     green10: string;
     green20: string;
     green30: string;
@@ -84,6 +97,8 @@ declare const colorObject: Colors & {
     green60: string;
     green70: string;
     green80: string;
+    yellow1: string;
+    yellow5: string;
     yellow10: string;
     yellow20: string;
     yellow30: string;
@@ -92,6 +107,8 @@ declare const colorObject: Colors & {
     yellow60: string;
     yellow70: string;
     yellow80: string;
+    orange1: string;
+    orange5: string;
     orange10: string;
     orange20: string;
     orange30: string;
@@ -100,14 +117,22 @@ declare const colorObject: Colors & {
     orange60: string;
     orange70: string;
     orange80: string;
+    red1: string;
+    red5: string;
     red10: string;
     red20: string;
     red30: string;
     red40: string;
     red50: string;
     red60: string;
+    /**
+     * Support listening to Appearance changes
+     * and change the design tokens accordingly
+     */
     red70: string;
     red80: string;
+    purple1: string;
+    purple5: string;
     purple10: string;
     purple20: string;
     purple30: string;
@@ -116,6 +141,15 @@ declare const colorObject: Colors & {
     purple60: string;
     purple70: string;
     purple80: string;
+    violet1: string; /**
+     * Add alpha to hex or rgb color
+     * arguments:
+     * p1 - hex color / R part of RGB
+     * p2 - opacity / G part of RGB
+     * p3 - B part of RGB
+     * p4 - opacity
+     */
+    violet5: string;
     violet10: string;
     violet20: string;
     violet30: string;
@@ -126,8 +160,70 @@ declare const colorObject: Colors & {
     violet80: string;
     white: string;
     black: string;
+    dmBlack: string;
     transparent: string;
 } & {
     primary: string;
+} & {
+    $backgroundDefault: string;
+    $backgroundElevated: string;
+    $backgroundNeutralHeavy: string;
+    $backgroundNeutralIdle: string;
+    $backgroundNeutralMedium: string;
+    $backgroundNeutral: string;
+    $backgroundNeutralLight: string;
+    $backgroundPrimaryHeavy: string;
+    $backgroundPrimaryLight: string;
+    $backgroundPrimary: string;
+    $backgroundGeneralHeavy: string;
+    $backgroundGeneralLight: string;
+    $backgroundGeneral: string;
+    $backgroundSuccessHeavy: string;
+    $backgroundSuccess: string;
+    $backgroundWarningHeavy: string;
+    $backgroundWarning: string;
+    $backgroundMajor: string;
+    $backgroundDangerHeavy: string;
+    $backgroundDanger: string;
+    $backgroundDisabled: string;
+    $backgroundDark: string;
+    $backgroundDarkElevated: string;
+    $backgroundDarkActive: string;
+    $backgroundInverted: string;
+    $textDisabled: string;
+    $textDefault: string;
+    $textNeutralHeavy: string;
+    $textNeutral: string;
+    $textNeutralLight: string;
+    $textDefaultLight: string;
+    $textPrimary: string;
+    $textGeneral: string;
+    $textSuccess: string;
+    $textMajor: string;
+    $textDanger: string;
+    $textDangerLight: string;
+    $iconDefault: string;
+    $iconNeutral: string;
+    $iconDefaultLight: string;
+    $iconPrimary: string;
+    $iconPrimaryLight: string;
+    $iconGeneral: string;
+    $iconGeneralLight: string;
+    $iconSuccess: string;
+    $iconSuccessLight: string;
+    $iconMajor: string;
+    $iconDanger: string;
+    $iconDangerLight: string;
+    $iconDisabled: string;
+    $outlineLight: string;
+    $outlineNeutral: string;
+    $outlineNeutralMedium: string;
+    $outlineDisabled: string;
+    $outlineDisabledHeavy: string;
+    $outlinePrimary: string;
+    $outlineGeneral: string;
+    $outlineWarning: string;
+    $outlineDanger: string;
+    $dividerDefault: string;
 };
 export default colorObject;

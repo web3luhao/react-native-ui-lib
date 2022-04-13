@@ -15,6 +15,10 @@ export declare type KeyboardTrackingViewProps = ViewProps & {
      * Allow control safe area
      */
     useSafeArea?: boolean;
+    /**
+     * Whether or not to include bottom tab bar inset
+     */
+    usesBottomTabs?: boolean;
     scrollToFocusedInput?: boolean;
     scrollBehavior?: number;
     revealKeyboardInteractive?: boolean;
@@ -26,7 +30,7 @@ export declare type KeyboardTrackingViewProps = ViewProps & {
     children?: React.ReactChild | React.ReactChild[];
     style?: ViewStyle;
 };
-declare const _default: React.ForwardRefExoticComponent<Pick<ViewProps & {
+declare const KeyboardTrackingView: React.ForwardRefExoticComponent<Pick<ViewProps & {
     /**
        * Enables tracking of the keyboard when it's dismissed interactively (false by default).
        * Why? When using an external keyboard (BT),
@@ -41,6 +45,10 @@ declare const _default: React.ForwardRefExoticComponent<Pick<ViewProps & {
      * Allow control safe area
      */
     useSafeArea?: boolean | undefined;
+    /**
+     * Whether or not to include bottom tab bar inset
+     */
+    usesBottomTabs?: boolean | undefined;
     scrollToFocusedInput?: boolean | undefined;
     scrollBehavior?: number | undefined;
     revealKeyboardInteractive?: boolean | undefined;
@@ -51,5 +59,5 @@ declare const _default: React.ForwardRefExoticComponent<Pick<ViewProps & {
     ref?: any;
     children?: React.ReactChild | React.ReactChild[] | undefined;
     style?: ViewStyle | undefined;
-}, "children" | keyof ViewProps | "useSafeArea" | "trackInteractive" | "scrollToFocusedInput" | "scrollBehavior" | "revealKeyboardInteractive" | "manageScrollView" | "requiresSameParentToManageScrollView" | "addBottomView" | "allowHitsOutsideBounds"> & React.RefAttributes<unknown>>;
-export default _default;
+}, keyof ViewProps | "useSafeArea" | "trackInteractive" | "usesBottomTabs" | "scrollToFocusedInput" | "scrollBehavior" | "revealKeyboardInteractive" | "manageScrollView" | "requiresSameParentToManageScrollView" | "addBottomView" | "allowHitsOutsideBounds"> & React.RefAttributes<unknown>>;
+export default KeyboardTrackingView;

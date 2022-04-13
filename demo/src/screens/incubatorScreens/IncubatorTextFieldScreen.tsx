@@ -1,7 +1,7 @@
 import _ from 'lodash';
 import React, {Component} from 'react';
 import {TextInput, StyleSheet, ScrollView, ActivityIndicator} from 'react-native';
-import {Assets, Colors, Spacings, Typography, View, Text, Button, Keyboard, Incubator} from 'react-native-ui-lib'; //eslint-disable-line
+import {Assets, Colors, Spacings, Typography, View, Text, Button, Keyboard, Incubator, Constants} from 'react-native-ui-lib'; //eslint-disable-line
 const {TextField} = Incubator;
 const {KeyboardAwareInsetsView} = Keyboard;
 
@@ -30,14 +30,14 @@ export default class TextFieldScreen extends Component {
   renderTrailingAccessory() {
     const {searching} = this.state;
     if (searching) {
-      return <ActivityIndicator color={Colors.grey10}/>;
+      return <ActivityIndicator color={Colors.$iconDefault}/>;
     } else {
       return (
         <Button
           iconSource={Assets.icons.demo.search}
           link
           marginL-s2
-          grey10
+          $iconDefault
           onPress={() => {
             this.setState({searching: true});
             setTimeout(() => {
@@ -68,8 +68,8 @@ export default class TextFieldScreen extends Component {
               placeholder="Floating placeholder"
               floatingPlaceholder
               floatingPlaceholderColor={{
-                focus: Colors.grey10,
-                default: Colors.grey30
+                focus: Colors.$textDefault,
+                default: Colors.$textNeutral
               }}
               // floatingPlaceholderStyle={Typography.text60}
               // style={Typography.text60}
@@ -114,7 +114,7 @@ export default class TextFieldScreen extends Component {
             placeholder="Enter weight"
             text70
             trailingAccessory={
-              <Text text70 grey30>
+              <Text text70 $textNeutral>
                 Kg.
               </Text>
             }
@@ -191,7 +191,12 @@ export default class TextFieldScreen extends Component {
 
           <TextField
             label="Email"
-            labelColor={{default: Colors.grey10, focus: Colors.blue20, error: Colors.red30, disabled: Colors.grey40}}
+            labelColor={{
+              default: Colors.$textDefault,
+              focus: Colors.$textGeneral,
+              error: Colors.$textDangerLight,
+              disabled: Colors.$textDisabled
+            }}
             placeholder="Enter valid email"
             validationMessage="Email is invalid"
             validate={'email'}
@@ -215,7 +220,9 @@ export default class TextFieldScreen extends Component {
             label="Label"
             placeholder="Enter text..."
             preset={preset}
-            dynamicFieldStyle={(_state, {preset}) => (preset === 'withUnderline' ? styles.withUnderline : styles.withFrame)}
+            dynamicFieldStyle={(_state, {preset}) =>
+              preset === 'withUnderline' ? styles.withUnderline : styles.withFrame
+            }
             editable={!shouldDisable}
           />
 
@@ -228,7 +235,12 @@ export default class TextFieldScreen extends Component {
             placeholder="Enter text..."
             multiline
             showCharCounter
-            charCounterStyle={{color: Colors.blue30}}
+            bottomAccessory={
+              <Text text100>
+                {Assets.emojis.grapes} {Assets.emojis.melon} {Assets.emojis.banana}
+              </Text>
+            }
+            charCounterStyle={{color: Colors.$textGeneral}}
             maxLength={20}
             fieldStyle={styles.withFrame}
           />
@@ -252,8 +264,12 @@ export default class TextFieldScreen extends Component {
             validate={'number'}
             validationMessage="Invalid price"
             // @ts-expect-error
-            formatter={(value) => (isNaN(value) ? value : priceFormatter.format(Number(value)))}
-            leadingAccessory={<Text marginR-s1 grey30>$</Text>}
+            formatter={value => (isNaN(value) ? value : priceFormatter.format(Number(value)))}
+            leadingAccessory={
+              <Text marginR-s1 $textNeutral>
+                $
+              </Text>
+            }
             fieldStyle={styles.withUnderline}
           />
         </View>
@@ -267,12 +283,12 @@ const styles = StyleSheet.create({
   container: {},
   withUnderline: {
     borderBottomWidth: 1,
-    borderColor: Colors.grey40,
+    borderColor: Constants.isAndroid ? Colors.$outlineDisabledHeavy.toString() : Colors.$outlineDisabledHeavy,
     paddingBottom: 4
   },
   withFrame: {
     borderWidth: 1,
-    borderColor: Colors.grey40,
+    borderColor: Constants.isAndroid ? Colors.$outlineDisabledHeavy.toString() : Colors.$outlineDisabledHeavy,
     padding: 4,
     borderRadius: 2
   }

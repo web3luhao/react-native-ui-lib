@@ -1,5 +1,5 @@
 import _ from 'lodash';
-import React, {PureComponent, ReactElement, ElementRef} from 'react';
+import React, {PureComponent, ReactElement} from 'react';
 import {
   StyleSheet,
   PanResponder,
@@ -25,9 +25,9 @@ const TRACK_SIZE = 6;
 const THUMB_SIZE = 24;
 const BORDER_WIDTH = 6;
 const SHADOW_RADIUS = 4;
-const DEFAULT_COLOR = Colors.grey50;
-const ACTIVE_COLOR = Colors.violet30;
-const INACTIVE_COLOR = Colors.grey60;
+const DEFAULT_COLOR = Colors.$backgroundDisabled;
+const ACTIVE_COLOR = Colors.$backgroundPrimaryHeavy;
+const INACTIVE_COLOR = Colors.$backgroundNeutralMedium;
 
 export type SliderOnValueChange = (value: number) => void;
 
@@ -105,6 +105,10 @@ export type SliderProps = {
    */
   disabled?: boolean;
   /**
+   * If true the Slider will stay in LTR mode even if the app is on RTL mode
+   */
+  disableRTL?: boolean;
+  /**
    * If true the component will have accessibility features enabled
    */
   accessible?: boolean;
@@ -151,9 +155,9 @@ export default class Slider extends PureComponent<SliderProps, State> {
 
   static defaultProps = defaultProps;
 
-  private thumb: ElementRef<typeof RNView> | undefined = undefined;
+  private thumb = React.createRef<RNView>();
   private _thumbStyles: ThumbStyle = {};
-  private minTrack: ElementRef<typeof RNView> | undefined = undefined;
+  private minTrack = React.createRef<RNView>();
   private _minTrackStyles: MinTrackStyle = {};
   private _x = 0;
   private _dx = 0;
@@ -255,10 +259,11 @@ export default class Slider extends PureComponent<SliderProps, State> {
   };
 
   handlePanResponderMove = (_e: GestureResponderEvent, gestureState: PanResponderGestureState) => {
-    if (this.props.disabled) {
+    const {disabled, disableRTL} = this.props;
+    if (disabled) {
       return;
     }
-    const dx = gestureState.dx * (Constants.isRTL ? -1 : 1);
+    const dx = gestureState.dx * (Constants.isRTL && !disableRTL ? -1 : 1);
     this.update(dx - this._dx);
     this._dx = dx;
   };
@@ -294,25 +299,18 @@ export default class Slider extends PureComponent<SliderProps, State> {
   }
 
   updateStyles(x: number) {
-    if (this.thumb) {
+    if (this.thumb.current) {
+      const {disableRTL} = this.props;
       const {trackSize} = this.state;
-      const position = x - this.initialThumbSize.width / 2;
-      const deviation = 3;
-
-      if (position + deviation < 0) {
-        this._thumbStyles.left = 0;
-      } else if (position - deviation > trackSize.width - this.initialThumbSize.width) {
-        this._thumbStyles.left = trackSize.width - this.initialThumbSize.width;
-      } else {
-        this._thumbStyles.left = position;
-      }
-
-      this.thumb.setNativeProps(this._thumbStyles);
+      const nonOverlappingTrackWidth = trackSize.width - this.initialThumbSize.width;
+      const _x = Constants.isRTL && disableRTL ? nonOverlappingTrackWidth - x : x; // adjust for RTL
+      this._thumbStyles.left = trackSize.width === 0 ? _x : (_x * nonOverlappingTrackWidth) / trackSize.width; // do not render above prefix\suffix icon\text
+      this.thumb.current?.setNativeProps(this._thumbStyles);
     }
 
-    if (this.minTrack) {
+    if (this.minTrack.current) {
       this._minTrackStyles.width = Math.min(this.state.trackSize.width, x);
-      this.minTrack.setNativeProps(this._minTrackStyles);
+      this.minTrack.current?.setNativeProps(this._minTrackStyles);
     }
   }
 
@@ -322,14 +320,14 @@ export default class Slider extends PureComponent<SliderProps, State> {
   }
 
   updateThumbStyle(start: boolean) {
-    if (this.thumb && !this.props.disableActiveStyling) {
+    if (this.thumb.current && !this.props.disableActiveStyling) {
       const {thumbStyle, activeThumbStyle} = this.props;
       const style = thumbStyle || styles.thumb;
       const activeStyle = activeThumbStyle || styles.activeThumb;
 
       const activeOrInactiveStyle = !this.props.disabled ? (start ? activeStyle : style) : {};
       this._thumbStyles.style = _.omit(activeOrInactiveStyle, 'height', 'width');
-      this.thumb.setNativeProps(this._thumbStyles);
+      this.thumb.current?.setNativeProps(this._thumbStyles);
       this.scaleThumb(start);
     }
   }
@@ -389,14 +387,6 @@ export default class Slider extends PureComponent<SliderProps, State> {
     return range;
   }
 
-  setMinTrackRef = (ref: ElementRef<typeof RNView>) => {
-    this.minTrack = ref;
-  };
-
-  setThumbRef = (ref: ElementRef<typeof RNView>) => {
-    this.thumb = ref;
-  };
-
   calculatedThumbActiveScale = () => {
     const {activeThumbStyle, thumbStyle, disabled, disableActiveStyling} = this.props;
     if (disabled || disableActiveStyling) {
@@ -413,10 +403,12 @@ export default class Slider extends PureComponent<SliderProps, State> {
   };
 
   updateTrackStepAndStyle = ({nativeEvent}: GestureResponderEvent) => {
-    this._x = nativeEvent.locationX;
+    const {disableRTL, step} = this.props;
+    const {trackSize} = this.state;
+    this._x = Constants.isRTL && !disableRTL ? trackSize.width - nativeEvent.locationX : nativeEvent.locationX;
     this.updateValue(this._x);
 
-    if (this.props.step > 0) {
+    if (step > 0) {
       this.bounceToStep();
     } else {
       this.updateStyles(this._x);
@@ -518,7 +510,7 @@ export default class Slider extends PureComponent<SliderProps, State> {
     return (
       <Animated.View
         hitSlop={thumbHitSlop}
-        ref={this.setThumbRef}
+        ref={this.thumb}
         onLayout={this.onThumbLayout}
         {...this._panResponder.panHandlers}
         style={[
@@ -545,6 +537,7 @@ export default class Slider extends PureComponent<SliderProps, State> {
       trackStyle,
       renderTrack,
       disabled,
+      disableRTL,
       minimumTrackTintColor = ACTIVE_COLOR,
       maximumTrackTintColor = DEFAULT_COLOR,
       testID
@@ -578,11 +571,12 @@ export default class Slider extends PureComponent<SliderProps, State> {
               onLayout={this.onTrackLayout}
             />
             <View
-              ref={this.setMinTrackRef}
+              ref={this.minTrack}
               style={[
                 styles.track,
                 trackStyle,
                 styles.minimumTrack,
+                Constants.isRTL && disableRTL && styles.trackDisableRTL,
                 {
                   backgroundColor: disabled ? DEFAULT_COLOR : minimumTrackTintColor
                 }
@@ -610,6 +604,9 @@ const styles = StyleSheet.create({
   },
   minimumTrack: {
     position: 'absolute'
+  },
+  trackDisableRTL: {
+    right: 0
   },
   thumb: {
     position: 'absolute',

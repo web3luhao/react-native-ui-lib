@@ -1,7 +1,7 @@
 import React, {PropsWithChildren, useCallback, useContext, useState, useMemo} from 'react';
 import {StyleSheet} from 'react-native';
 import Reanimated, {useAnimatedStyle, useAnimatedReaction, runOnJS} from 'react-native-reanimated';
-import {Freeze} from 'react-freeze';
+// import {Freeze} from 'react-freeze';
 import TabBarContext from './TabBarContext';
 
 export interface TabControllerPageProps {
@@ -14,7 +14,7 @@ export interface TabControllerPageProps {
    */
   lazy?: boolean;
   /**
-   * How long to wait till lazy load complete (good for showing loader screens)
+   * How long to wait till lazy load complete (good for showing loader screens and when loading big pages)
    */
   lazyLoadTime?: number;
   /**
@@ -36,39 +36,42 @@ export default function TabPage({
   index,
   lazy,
   renderLoading,
+  lazyLoadTime = 100,
   ...props
 }: PropsWithChildren<TabControllerPageProps>) {
   const {currentPage, asCarousel, containerWidth} = useContext(TabBarContext);
   const [shouldLoad, setLoaded] = useState(!lazy);
-  const [focused, setFocused] = useState(false);
+  // const [focused, setFocused] = useState(false);
 
   const lazyLoad = useCallback(() => {
     if (lazy && !shouldLoad) {
-      setLoaded(true);
+      setTimeout(() => {
+        setLoaded(true);
+      }, lazyLoadTime);
     }
   }, [lazy, shouldLoad]);
 
   useAnimatedReaction(() => {
     return currentPage.value;
   },
-  (currentPage, previousPage) => {
+  (currentPage /* , previousPage */) => {
     const isActive = currentPage === index;
-    const wasActive = previousPage === index;
-    const nearActive = asCarousel && (currentPage - 1 === index || currentPage + 1 === index);
-    const wasNearActive =
-        asCarousel && previousPage !== null && (previousPage - 1 === index || previousPage + 1 === index);
+    // const wasActive = previousPage === index;
+    // const nearActive = asCarousel && (currentPage - 1 === index || currentPage + 1 === index);
+    // const wasNearActive =
+    //     asCarousel && previousPage !== null && (previousPage - 1 === index || previousPage + 1 === index);
 
     if (isActive) {
       runOnJS(lazyLoad)();
     }
 
-    if (isActive || nearActive) {
-      runOnJS(setFocused)(true);
-    } else if (wasActive || wasNearActive) {
-      runOnJS(setFocused)(false);
-    }
+    // if (isActive || nearActive) {
+    //   runOnJS(setFocused)(true);
+    // } else if (wasActive || wasNearActive) {
+    //   runOnJS(setFocused)(false);
+    // }
   },
-  [currentPage]);
+  [currentPage, lazyLoad]);
 
   const animatedPageStyle = useAnimatedStyle(() => {
     const isActive = Math.round(currentPage.value) === index;
@@ -85,8 +88,8 @@ export default function TabPage({
   return (
     <Reanimated.View style={style} testID={testID}>
       {!shouldLoad && renderLoading?.()}
-      {/* {shouldLoad && props.children} */}
-      <Freeze freeze={!shouldLoad || !focused}>{props.children}</Freeze>
+      {shouldLoad && props.children}
+      {/* <Freeze freeze={!shouldLoad || !focused}>{props.children}</Freeze> */}
     </Reanimated.View>
   );
 }

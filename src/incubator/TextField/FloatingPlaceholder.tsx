@@ -1,6 +1,6 @@
 import React, {useContext, useEffect, useRef, useCallback, useState, useMemo} from 'react';
-import {Animated, LayoutChangeEvent, StyleSheet, Platform, TextStyle, StyleProp} from 'react-native';
-import {ColorType, ValidationMessagePosition} from './types';
+import {Animated, LayoutChangeEvent, StyleSheet, Platform} from 'react-native';
+import {FloatingPlaceholderProps, ValidationMessagePosition} from './types';
 import {getColorByState} from './Presenter';
 import {Colors} from '../../style';
 import {Constants} from '../../commons/new';
@@ -8,36 +8,16 @@ import View from '../../components/view';
 import Text from '../../components/text';
 import FieldContext from './FieldContext';
 
-export interface FloatingPlaceholderProps {
-  /**
-   * The placeholder for the field
-   */
-  placeholder?: string;
-  /**
-   * The floating placeholder color
-   */
-  floatingPlaceholderColor?: ColorType;
-  /**
-   * Custom style to pass to the floating placeholder
-   */
-  floatingPlaceholderStyle?: StyleProp<TextStyle>;
-  /**
-   * Should placeholder float on focus or when start typing
-   */
-  floatOnFocus?: boolean;
-  validationMessagePosition?: ValidationMessagePosition;
-  extraOffset?: number;
-}
-
 const FLOATING_PLACEHOLDER_SCALE = 0.875;
 
 const FloatingPlaceholder = ({
   placeholder,
-  floatingPlaceholderColor = Colors.grey40,
+  floatingPlaceholderColor = Colors.$textNeutralLight,
   floatingPlaceholderStyle,
   floatOnFocus,
   validationMessagePosition,
-  extraOffset = 0
+  extraOffset = 0,
+  testID
 }: FloatingPlaceholderProps) => {
   const context = useContext(FieldContext);
   const [placeholderOffset, setPlaceholderOffset] = useState({
@@ -92,6 +72,7 @@ const FloatingPlaceholder = ({
         color={getColorByState(floatingPlaceholderColor, context)}
         style={[styles.placeholder, floatingPlaceholderStyle, animatedStyle]}
         onLayout={onPlaceholderLayout}
+        testID={testID}
       >
         {placeholder}
       </Text>
@@ -102,7 +83,7 @@ const FloatingPlaceholder = ({
 const styles = StyleSheet.create({
   placeholder: {
     ...Platform.select({
-      android: {textAlignVertical: 'center', flex: 1}
+      android: {textAlignVertical: 'center', flexShrink: 1}
     })
   },
   hidden: {

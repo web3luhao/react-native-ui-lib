@@ -17,32 +17,31 @@ export default class ChipsInputScreen extends Component {
         <Incubator.ChipsInput
           placeholder="Enter chips"
           defaultChipProps={{
-            backgroundColor: Colors.primary,
-            labelStyle: {color: Colors.white},
+            backgroundColor: Colors.$backgroundPrimaryHeavy,
+            labelStyle: {color: Colors.$textDefaultLight},
             containerStyle: {borderWidth: 0},
-            dismissColor: Colors.white
+            dismissColor: Colors.$iconDefaultLight
           }}
           invalidChipProps={{
-            dismissColor: Colors.red30,
-            labelStyle: {color: Colors.red30},
-            backgroundColor: Colors.white,
-            containerStyle: {borderColor: Colors.red30}
+            dismissColor: Colors.$iconDanger,
+            labelStyle: {color: Colors.$textDanger},
+            backgroundColor: Colors.$backgroundDefault,
+            containerStyle: {borderColor: Colors.$outlineDanger}
           }}
           chips={this.state.chips}
           leadingAccessory={<Text>TO: </Text>}
           onChange={newChips => {
-            _.chain(newChips)
-              .groupBy('label')
-              .forEach(group => {
-                if (group.length === 1) {
-                  delete group[0].invalid;
-                } else {
-                  group[group.length - 1].invalid = true;
-                }
-              })
-              .values()
-              .flatten()
-              .value();
+            _.flow(newChips => _.groupBy(newChips, 'label'),
+              newChips =>
+                _.forEach(newChips, group => {
+                  if (group.length === 1) {
+                    delete group[0].invalid;
+                  } else {
+                    group[group.length - 1].invalid = true;
+                  }
+                }),
+              _.values,
+              _.flatten)(newChips);
 
             this.setState({chips: newChips});
           }}

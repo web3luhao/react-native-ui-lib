@@ -1,6 +1,6 @@
 import React, {Component} from 'react';
 import {StyleSheet, ScrollView} from 'react-native';
-import {Colors, View, Text, Image, Slider, GradientSlider, ColorSliderGroup} from 'react-native-ui-lib';
+import {Colors, View, Text, Icon, Slider, GradientSlider, ColorSliderGroup, Constants} from 'react-native-ui-lib';
 
 const INITIAL_VALUE = 0;
 const COLOR = Colors.blue30;
@@ -28,15 +28,15 @@ export default class SliderScreen extends Component<SliderScreenProps, SliderScr
 
   onSliderValueChange = (value: number) => {
     this.setState({sliderValue: value});
-  }
+  };
 
   onGradientValueChange = (value: string, alpha: number) => {
     this.setState({color: value, alpha});
-  }
+  };
 
   onGroupValueChange = (value: string) => {
     console.warn('onGroupValueChange: ', value);
-  }
+  };
 
   render() {
     const {color, alpha, sliderValue} = this.state;
@@ -44,56 +44,59 @@ export default class SliderScreen extends Component<SliderScreenProps, SliderScr
     return (
       <ScrollView showsVerticalScrollIndicator={false}>
         <View flex padding-20>
-          <Text titleHuge marginB-20>Sliders</Text>
-          
-          <View row centerV>
-            <Image assetName={'megaphone'} style={styles.image}/>
-            <Slider 
-              onValueChange={this.onSliderValueChange} 
+          <Text titleHuge $textDefault marginB-20>
+            Sliders
+          </Text>
+
+          <View row centerV style={Constants.isRTL && styles.ltr}>
+            <Icon assetName={'search'} style={styles.image}/>
+            <Slider
+              onValueChange={this.onSliderValueChange}
               value={INITIAL_VALUE}
-              minimumValue={0} 
-              maximumValue={100} 
-              step={1} 
+              minimumValue={0}
+              maximumValue={100}
+              step={1}
               containerStyle={styles.sliderContainer}
+              disableRTL
             />
-            <Text bodySmall grey30 style={styles.text}>{sliderValue}%</Text>
+            <Text bodySmall $textNeutral style={styles.text}>
+              {sliderValue}%
+            </Text>
           </View>
-          
-          <Text marginT-30>Negatives</Text>
-          <Slider 
-            minimumValue={-100} 
-            maximumValue={100} 
-            value={-30} 
+
+          <Text $textDefault marginT-30>
+            Negatives
+          </Text>
+          <Slider
+            minimumValue={-100}
+            maximumValue={100}
+            value={-30}
             minimumTrackTintColor={Colors.red30}
             thumbTintColor={Colors.red50}
             containerStyle={styles.slider}
           />
-          <Slider 
-            minimumValue={-300} 
-            maximumValue={-100} 
-            value={-130} 
+          <Slider
+            minimumValue={-300}
+            maximumValue={-100}
+            value={-130}
             minimumTrackTintColor={Colors.red30}
             thumbTintColor={Colors.red50}
             containerStyle={styles.slider}
           />
 
-          <Text marginT-20>Disabled</Text>
-          <Slider 
-            minimumValue={100} 
-            maximumValue={200} 
-            value={120} 
-            minimumTrackTintColor={Colors.red30}
-            thumbTintColor={Colors.green30}
-            containerStyle={styles.slider}
-            disabled
-          />
-          
-          <Text marginT-15>Custom with Steps</Text>
-          <Slider 
-            value={50} 
-            minimumValue={0} 
-            maximumValue={100} 
-            step={25} 
+          <Text $textDefault marginT-20>
+            Disabled
+          </Text>
+          <Slider minimumValue={100} maximumValue={200} value={120} containerStyle={styles.slider} disabled/>
+
+          <Text $textDefault marginT-15>
+            Custom with Steps
+          </Text>
+          <Slider
+            value={50}
+            minimumValue={0}
+            maximumValue={100}
+            step={25}
             containerStyle={styles.slider}
             trackStyle={styles.track}
             thumbStyle={styles.thumb}
@@ -103,12 +106,16 @@ export default class SliderScreen extends Component<SliderScreenProps, SliderScr
             maximumTrackTintColor={Colors.violet70}
           />
 
-          <Text marginT-15>Gradient Sliders</Text>
+          <Text $textDefault marginT-15>
+            Gradient Sliders
+          </Text>
           <View row centerV>
-            <Text text90 grey30>DEFAULT</Text>
-            <GradientSlider 
-              color={color} 
-              containerStyle={styles.gradientSliderContainer} 
+            <Text text90 $textNeutral>
+              DEFAULT
+            </Text>
+            <GradientSlider
+              color={color}
+              containerStyle={styles.gradientSliderContainer}
               onValueChange={this.onGradientValueChange}
             />
             <View style={styles.box}>
@@ -116,25 +123,29 @@ export default class SliderScreen extends Component<SliderScreenProps, SliderScr
             </View>
           </View>
           <View row centerV>
-            <Text text90 grey30>HUE</Text>
-            <GradientSlider 
-              type={GradientSlider.types.HUE} 
-              color={COLOR} 
-              containerStyle={styles.gradientSliderContainer} 
+            <Text text90 $textNeutral>
+              HUE
+            </Text>
+            <GradientSlider
+              type={GradientSlider.types.HUE}
+              color={COLOR}
+              containerStyle={styles.gradientSliderContainer}
               onValueChange={this.onGradientValueChange}
             />
             <View style={styles.box}>
               <View style={{flex: 1, backgroundColor: color}}/>
             </View>
           </View>
-        
-          <Text marginT-25 marginB-20>Color Slider Group</Text>
-          <ColorSliderGroup 
-            initialColor={color} 
+
+          <Text $textDefault marginT-25 marginB-20>
+            Color Slider Group
+          </Text>
+          <ColorSliderGroup
+            initialColor={color}
             sliderContainerStyle={styles.slider}
             containerStyle={styles.group}
             showLabels
-            // onValueChange={this.onGroupValueChange} 
+            // onValueChange={this.onGroupValueChange}
           />
         </View>
       </ScrollView>
@@ -143,8 +154,11 @@ export default class SliderScreen extends Component<SliderScreenProps, SliderScr
 }
 
 const styles = StyleSheet.create({
+  ltr: {
+    flexDirection: 'row-reverse'
+  },
   image: {
-    tintColor: Colors.grey30
+    tintColor: Colors.$iconNeutral
   },
   text: {
     width: 40
@@ -165,27 +179,27 @@ const styles = StyleSheet.create({
     height: 2
   },
   thumb: {
-    width: 26, 
-    height: 26, 
-    borderRadius: 13, 
-    borderColor: Colors.violet40, 
-    borderWidth: 1, 
+    width: 26,
+    height: 26,
+    borderRadius: 13,
+    borderColor: Colors.violet40,
+    borderWidth: 1,
     shadowColor: Colors.white
   },
   activeThumb: {
-    width: 40, 
-    height: 40, 
+    width: 40,
+    height: 40,
     borderRadius: 20
   },
   box: {
-    width: 20, 
+    width: 20,
     height: 20,
     borderRadius: 4,
-    borderWidth: 1, 
-    borderColor: Colors.grey60
+    borderWidth: 1,
+    borderColor: Colors.$outlineDefault
   },
   group: {
-    backgroundColor: Colors.grey60,
+    backgroundColor: Colors.$backgroundNeutralMedium,
     padding: 10,
     borderRadius: 6
   }

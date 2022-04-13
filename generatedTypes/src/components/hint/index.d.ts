@@ -52,6 +52,10 @@ export interface HintProps {
      */
     targetFrame?: HintTargetFrame;
     /**
+     * Open the hint using a Modal component
+     */
+    useModal?: boolean;
+    /**
      * Show side tips instead of the middle tip
      */
     useSideTip?: boolean;
@@ -119,23 +123,29 @@ declare class Hint extends Component<HintProps, HintState> {
     static displayName: string;
     static defaultProps: {
         position: HintPositions;
+        useModal: boolean;
     };
     static positions: typeof HintPositions;
     targetRef: ElementRef<typeof RNView> | null;
-    hintRef: ElementRef<typeof RNView> | null;
+    hintRef: React.RefObject<RNView>;
     animationDuration: number;
     state: {
-        targetLayoutInWindow: undefined;
+        targetLayoutInWindow: {
+            x: number;
+            y: number;
+            width: number;
+            height: number;
+        } | undefined;
         targetLayout: HintTargetFrame | undefined;
         hintUnmounted: boolean;
     };
     visibleAnimated: Animated.Value;
+    componentDidMount(): void;
     componentDidUpdate(prevProps: HintProps): void;
     animateHint: () => void;
     toggleAnimationEndedToRemoveHint: () => void;
     focusAccessibilityOnHint: () => void;
     setTargetRef: (ref: ElementRef<typeof RNView>) => void;
-    setHintRef: (ref: ElementRef<typeof RNView>) => void;
     onTargetLayout: ({ nativeEvent: { layout } }: LayoutChangeEvent) => void;
     getAccessibilityInfo(): {
         accessible: boolean;
@@ -165,6 +175,8 @@ declare class Hint extends Component<HintProps, HintState> {
         }[];
     };
     getTipPosition(): Position;
+    isUsingModal: () => boolean | undefined;
+    renderOverlay(): JSX.Element | undefined;
     renderHintTip(): JSX.Element;
     renderContent(): JSX.Element;
     renderHint(): JSX.Element | undefined;

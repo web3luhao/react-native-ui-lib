@@ -7,6 +7,7 @@ import {
   findNodeHandle,
   GestureResponderEvent,
   ImageSourcePropType,
+  TouchableWithoutFeedback,
   ImageStyle,
   StyleProp,
   TextStyle,
@@ -25,7 +26,7 @@ import TouchableOpacity from '../touchableOpacity';
 const sideTip = require('./assets/hintTipSide.png');
 const middleTip = require('./assets/hintTipMiddle.png');
 
-const DEFAULT_COLOR = Colors.primary;
+const DEFAULT_COLOR = Colors.$backgroundPrimaryHeavy;
 const DEFAULT_HINT_OFFSET = Spacings.s4;
 const DEFAULT_EDGE_MARGINS = Spacings.s5;
 
@@ -87,6 +88,10 @@ export interface HintProps {
    * Provide custom target position instead of wrapping a child
    */
   targetFrame?: HintTargetFrame;
+  /**
+   * Open the hint using a Modal component
+   */
+  useModal?: boolean;
   /**
    * Show side tips instead of the middle tip
    */
@@ -157,22 +162,27 @@ class Hint extends Component<HintProps, HintState> {
   static displayName = 'Hint';
 
   static defaultProps = {
-    position: HintPositions.BOTTOM
+    position: HintPositions.BOTTOM,
+    useModal: true
   };
 
   static positions = HintPositions;
 
   targetRef: ElementRef<typeof RNView> | null = null;
-  hintRef: ElementRef<typeof RNView> | null = null;
+  hintRef = React.createRef<RNView>();
   animationDuration = 170;
 
   state = {
-    targetLayoutInWindow: undefined,
+    targetLayoutInWindow: undefined as {x: number; y: number; width: number; height: number} | undefined,
     targetLayout: this.props.targetFrame,
     hintUnmounted: !this.props.visible
   };
 
   visibleAnimated = new Animated.Value(Number(!!this.props.visible));
+
+  componentDidMount() {
+    this.focusAccessibilityOnHint();
+  }
 
   componentDidUpdate(prevProps: HintProps) {
     if (prevProps.visible !== this.props.visible) {
@@ -195,7 +205,7 @@ class Hint extends Component<HintProps, HintState> {
   focusAccessibilityOnHint = () => {
     const {message} = this.props;
     const targetRefTag = findNodeHandle(this.targetRef);
-    const hintRefTag = findNodeHandle(this.hintRef);
+    const hintRefTag = findNodeHandle(this.hintRef.current);
 
     if (targetRefTag && _.isString(message)) {
       AccessibilityInfo.setAccessibilityFocus(targetRefTag);
@@ -206,11 +216,6 @@ class Hint extends Component<HintProps, HintState> {
 
   setTargetRef = (ref: ElementRef<typeof RNView>) => {
     this.targetRef = ref;
-    this.focusAccessibilityOnHint();
-  };
-
-  setHintRef = (ref: ElementRef<typeof RNView>) => {
-    this.hintRef = ref;
     this.focusAccessibilityOnHint();
   };
 
@@ -246,14 +251,14 @@ class Hint extends Component<HintProps, HintState> {
   }
 
   get targetLayout() {
-    const {onBackgroundPress, targetFrame} = this.props;
+    const {onBackgroundPress, useModal, targetFrame} = this.props;
     const {targetLayout, targetLayoutInWindow} = this.state;
 
     if (targetFrame) {
       return targetFrame;
     }
 
-    return onBackgroundPress ? targetLayoutInWindow : targetLayout;
+    return onBackgroundPress && useModal ? targetLayoutInWindow : targetLayout;
   }
 
   get showHint() {
@@ -397,31 +402,39 @@ class Hint extends Component<HintProps, HintState> {
     return tipPositionStyle;
   }
 
-  // renderOverlay() {
-  //   const {targetLayoutInWindow} = this.state;
-  //   const {onBackgroundPress} = this.props;
-  //   if (targetLayoutInWindow) {
-  //     const containerPosition = this.getContainerPosition();
-  //     return (
-  //       <View
-  //         style={[
-  //           styles.overlay,
-  //           {
-  //             top: containerPosition.top - targetLayoutInWindow.y,
-  //             left: containerPosition.left - targetLayoutInWindow.x,
-  //           },
-  //         ]}
-  //         pointerEvents="box-none"
-  //       >
-  //         {onBackgroundPress && (
-  //           <TouchableWithoutFeedback style={[StyleSheet.absoluteFillObject]} onPress={onBackgroundPress}>
-  //             <View flex />
-  //           </TouchableWithoutFeedback>
-  //         )}
-  //       </View>
-  //     );
-  //   }
-  // }
+  isUsingModal = () => {
+    const {onBackgroundPress, useModal} = this.props;
+    return onBackgroundPress && useModal;
+  };
+
+  renderOverlay() {
+    const {targetLayoutInWindow} = this.state;
+    const {onBackgroundPress, backdropColor, testID} = this.props;
+    if (targetLayoutInWindow) {
+      const containerPosition = this.getContainerPosition() as {top: number; left: number};
+      return (
+        <Animated.View
+          style={[
+            styles.overlay,
+            {
+              top: containerPosition.top - targetLayoutInWindow.y,
+              left: containerPosition.left - targetLayoutInWindow.x,
+              backgroundColor: backdropColor,
+              opacity: this.visibleAnimated
+            }
+          ]}
+          pointerEvents="box-none"
+          testID={`${testID}.overlay`}
+        >
+          {onBackgroundPress && (
+            <TouchableWithoutFeedback style={StyleSheet.absoluteFillObject} onPress={onBackgroundPress}>
+              <View flex/>
+            </TouchableWithoutFeedback>
+          )}
+        </Animated.View>
+      );
+    }
+  }
 
   renderHintTip() {
     const {position, color = DEFAULT_COLOR} = this.props;
@@ -462,7 +475,7 @@ class Hint extends Component<HintProps, HintState> {
           {backgroundColor: color},
           !_.isUndefined(borderRadius) && {borderRadius}
         ]}
-        ref={this.setHintRef}
+        ref={this.hintRef}
       >
         {customContent}
         {!customContent && icon && <Image source={icon} style={[styles.icon, iconStyle]}/>}
@@ -506,7 +519,7 @@ class Hint extends Component<HintProps, HintState> {
         // this view must be collapsable, don't pass testID or backgroundColor etc'.
         collapsable
         testID={undefined}
-        style={[styles.container, style, this.getContainerPosition()]}
+        style={[styles.container, style, this.getContainerPosition(), !this.isUsingModal() && styles.overlayContainer]}
       >
         {this.renderHint()}
       </View>
@@ -558,7 +571,7 @@ class Hint extends Component<HintProps, HintState> {
     return (
       <>
         {this.renderChildren()}
-        {onBackgroundPress ? (
+        {this.isUsingModal() ? (
           <Modal
             visible={this.showHint}
             animationType={backdropColor ? 'fade' : 'none'}
@@ -572,8 +585,11 @@ class Hint extends Component<HintProps, HintState> {
             {this.renderHintContainer()}
           </Modal>
         ) : (
-          // this.renderOverlay(),
-          this.renderHintContainer()
+          <>
+            {this.renderOverlay()}
+            {this.renderMockChildren()}
+            {this.renderHintContainer()}
+          </>
         )}
       </>
     );
@@ -583,6 +599,10 @@ class Hint extends Component<HintProps, HintState> {
 const styles = StyleSheet.create({
   container: {
     position: 'absolute'
+  },
+  overlayContainer: {
+    zIndex: 10,
+    elevation: 10
   },
   mockChildrenContainer: {
     position: 'absolute'
@@ -601,11 +621,11 @@ const styles = StyleSheet.create({
     right: undefined,
     bottom: undefined
   },
-  // overlay: {
-  //   position: 'absolute',
-  //   width: Constants.screenWidth,
-  //   height: Constants.screenHeight
-  // },
+  overlay: {
+    position: 'absolute',
+    width: Constants.screenWidth,
+    height: Constants.screenHeight
+  },
   animatedContainer: {
     position: 'absolute'
   },
@@ -613,7 +633,7 @@ const styles = StyleSheet.create({
     position: 'absolute'
   },
   hint: {
-    maxWidth: 400,
+    maxWidth: Math.min(Constants.screenWidth - 2 * Spacings.s4, 400),
     borderRadius: BorderRadiuses.br60,
     backgroundColor: DEFAULT_COLOR
   },
@@ -627,12 +647,12 @@ const styles = StyleSheet.create({
   },
   hintMessage: {
     ...Typography.text70,
-    color: Colors.white,
+    color: Colors.$textDefaultLight,
     flexShrink: 1
   },
   icon: {
     marginRight: Spacings.s4,
-    tintColor: Colors.white
+    tintColor: Colors.$backgroundDefault
   }
 });
 

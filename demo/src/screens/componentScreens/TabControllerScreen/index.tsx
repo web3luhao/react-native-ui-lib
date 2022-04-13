@@ -37,17 +37,16 @@ class TabControllerScreen extends Component<{}, State> {
   }
 
   generateTabItems = (fewItems = this.state.fewItems): TabControllerItemProps[] => {
-    const items: TabControllerItemProps[] = _.chain(TABS)
-      .take(fewItems ? 3 : TABS.length)
-      .map<TabControllerItemProps>((tab, index) => ({
-        label: tab,
-        key: tab,
-        icon: index === 2 ? Assets.icons.demo.dashboard : undefined,
-        badge: index === 5 ? {label: '2'} : undefined,
-        leadingAccessory: index === 3 ? <Text marginR-4>{Assets.emojis.movie_camera}</Text> : undefined,
-        trailingAccessory: index === 4 ? <Text marginL-4>{Assets.emojis.camera}</Text> : undefined
-      }))
-      .value();
+    const items: TabControllerItemProps[] = _.flow(tabs => _.take(tabs, fewItems ? 3 : TABS.length),
+      (tabs: TabControllerItemProps[]) =>
+        _.map<TabControllerItemProps>(tabs, (tab: TabControllerItemProps, index: number) => ({
+          label: tab,
+          key: tab,
+          icon: index === 2 ? Assets.icons.demo.dashboard : undefined,
+          badge: index === 5 ? {label: '2'} : undefined,
+          leadingAccessory: index === 3 ? <Text marginR-4>{Assets.emojis.movie_camera}</Text> : undefined,
+          trailingAccessory: index === 4 ? <Text marginL-4>{Assets.emojis.camera}</Text> : undefined
+        })))(TABS);
 
     const addItem: TabControllerItemProps = {
       icon: Assets.icons.demo.add,
@@ -134,15 +133,16 @@ class TabControllerScreen extends Component<{}, State> {
           <Tab3/>
         </TabController.TabPage>
 
-        {!fewItems && _.map(_.takeRight(TABS, TABS.length - 3), (title, index) => {
-          return (
-            <TabController.TabPage key={title} index={index + 3}>
-              <View padding-s5>
-                <Text text40>{title}</Text>
-              </View>
-            </TabController.TabPage>
-          );
-        })}
+        {!fewItems &&
+          _.map(_.takeRight(TABS, TABS.length - 3), (title, index) => {
+            return (
+              <TabController.TabPage key={title} index={index + 3}>
+                <View padding-s5>
+                  <Text text40>{title}</Text>
+                </View>
+              </TabController.TabPage>
+            );
+          })}
       </Container>
     );
   }
@@ -150,7 +150,7 @@ class TabControllerScreen extends Component<{}, State> {
   render() {
     const {key, initialIndex, /* selectedIndex, */ asCarousel, centerSelected, fewItems, items} = this.state;
     return (
-      <View flex bg-grey70>
+      <View flex bg-$backgroundDefault>
         <TabController
           key={key}
           asCarousel={asCarousel}
@@ -174,7 +174,7 @@ class TabControllerScreen extends Component<{}, State> {
             // iconColor={'green'}
             // selectedIconColor={'blue'}
             enableShadow
-            activeBackgroundColor={Colors.blue60}
+            activeBackgroundColor={Colors.$backgroundGeneralLight}
             centerSelected={centerSelected}
           >
             {/* {this.renderTabItems()} */}

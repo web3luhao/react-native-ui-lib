@@ -1,9 +1,9 @@
-import {InternalTextFieldProps} from './index';
 import defaultPreset from './presets/default';
+import {InternalTextFieldProps} from './types';
 
-export default function usePreset({preset/*  = 'default' */, ...props}: InternalTextFieldProps) {
+export default function usePreset({preset /*  = 'default' */, ...props}: InternalTextFieldProps) {
   if (preset === 'default') {
-    return {...defaultPreset, ...props};
+    return {...defaultPreset, ...props, fieldStyle: [defaultPreset.fieldStyle, props.fieldStyle]};
   }
   return props;
 }

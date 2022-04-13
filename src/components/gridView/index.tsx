@@ -1,7 +1,7 @@
 import _ from 'lodash';
 import React from 'react';
 import {StyleSheet} from 'react-native';
-import {Colors, Spacings} from 'style';
+import {Spacings} from 'style';
 // TODO: we should use asBaseComponent here instead of using UIComponent directly
 import UIComponent from '../../commons/UIComponent';
 import View from '../view';
@@ -47,6 +47,10 @@ export interface GridViewProps {
    * Ignored when passing 'maxItemWidth'
    */
   keepItemSize?: boolean;
+  /**
+   * Pass to render a custom item
+   */
+  renderCustomItem?: (item: GridListItemProps) => React.ReactElement;
 }
 
 interface GridViewState {
@@ -141,33 +145,17 @@ class GridView extends UIComponent<GridViewProps, GridViewState> {
     return (containerWidth - itemSpacing * (numColumns - 1)) / numColumns;
   }
 
-  getThemeColor(placeColor: string) {
-    if (_.toLower(placeColor) === _.toLower(Colors.white)) {
-      return Colors.black;
-    } else if (Colors.isDark(placeColor)) {
-      return placeColor;
-    } else {
-      return Colors.getColorTint(placeColor, 30);
-    }
-  }
-
   renderLastItemOverlay() {
-    const {lastItemLabel, items} = this.props;
-    const overlayColor = this.getThemeColor(this.props.lastItemOverlayColor ?? '');
+    const {lastItemLabel, items, lastItemOverlayColor} = this.props;
     const formattedLabel = formatLastItemLabel(lastItemLabel, {shouldAddPlus: true});
 
     if (!lastItemLabel) {
       return;
     }
 
-    const imageBorderRadius = _.chain(items).first().get('imageProps.borderRadius').value();
+    const imageBorderRadius = _.flow(_.first, item => _.get(item, 'imageProps.borderRadius'))(items);
     return (
-      <View
-        style={[
-          styles.overlayContainer,
-          {backgroundColor: Colors.rgba(overlayColor, 0.6), borderRadius: imageBorderRadius}
-        ]}
-      >
+      <View style={[styles.overlayContainer, {backgroundColor: lastItemOverlayColor, borderRadius: imageBorderRadius}]}>
         <Text mainBold white>
           {formattedLabel}
         </Text>
@@ -177,30 +165,39 @@ class GridView extends UIComponent<GridViewProps, GridViewState> {
 
   renderItem = (item: GridListItemProps, index: number) => {
     const {itemSize} = this.state;
-    const {items, itemSpacing} = this.props;
-
+    const {items, itemSpacing, renderCustomItem} = this.props;
     const {numColumns = DEFAULT_NUM_COLUMNS} = this.state;
+
     const itemsCount = _.size(items);
-    const rowCount = itemsCount / numColumns;
+    const rowCount = Math.ceil(itemsCount / numColumns);
     const isLastItemInRow = (index + 1) % numColumns === 0;
     const isLastRow = index + 1 > (rowCount - 1) * numColumns;
     const isLastItem = index === itemsCount - 1;
     const size =
-      typeof item.itemSize === 'object' ? {width: itemSize, height: item.itemSize?.height || itemSize} : itemSize;
-    return (
-      <GridListItem
-        key={index}
-        {...item}
-        itemSize={size}
-        containerStyle={[
-          !isLastItemInRow && {marginRight: itemSpacing},
-          !isLastRow && {marginBottom: itemSpacing},
-          item.containerStyle
-        ]}
-      >
-        {isLastItem && this.renderLastItemOverlay()}
-      </GridListItem>
-    );
+      typeof item.itemSize === 'object'
+        ? {
+          width: itemSize,
+          height: item.itemSize?.height || itemSize
+        }
+        : itemSize;
+
+    const itemProps = {
+      key: index,
+      ...item,
+      itemSize: size,
+      containerStyle: [
+        !isLastItemInRow && {
+          marginRight: itemSpacing
+        },
+        !isLastRow && {
+          marginBottom: itemSpacing
+        },
+        item.containerStyle
+      ],
+      children: isLastItem ? this.renderLastItemOverlay() : undefined
+    };
+
+    return renderCustomItem ? renderCustomItem(itemProps) : <GridListItem {...itemProps}/>;
   };
 
   render() {

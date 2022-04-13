@@ -1,18 +1,23 @@
 import _ from 'lodash';
 //@ts-ignore
 import Color from 'color';
+import {OpaqueColorValue} from 'react-native';
 import tinycolor from 'tinycolor2';
 import {colorsPalette, themeColors} from './colorsPalette';
+import DesignTokens from './designTokens';
+import DesignTokensDM from './designTokensDM';
 //@ts-ignore
 import ColorName from './colorName';
 import Scheme, {Schemes, SchemeType} from './scheme';
 
 export class Colors {
   [key: string]: any;
+  private shouldSupportDarkMode = false;
 
   constructor() {
     const colors = Object.assign(colorsPalette, themeColors);
     Object.assign(this, colors);
+    this.loadSchemes({light: DesignTokens, dark: DesignTokensDM});
 
     Scheme.addChangeListener(() => {
       Object.assign(this, Scheme.getScheme());
@@ -55,6 +60,14 @@ export class Colors {
   }
 
   /**
+   * Support listening to Appearance changes
+   * and change the design tokens accordingly
+   */
+  supportDarkMode() {
+    this.shouldSupportDarkMode = true;
+  }
+
+  /**
    * Add alpha to hex or rgb color
    * arguments:
    * p1 - hex color / R part of RGB
@@ -70,6 +83,11 @@ export class Colors {
     let red;
     let green;
     let blue;
+
+    // Handle design token PlatformColor object
+    if (typeof p1 === 'object') {
+      p1 = colorStringValue(p1);
+    }
 
     if (arguments.length === 2 && typeof p1 === 'string') {
       hex = p1;
@@ -108,11 +126,18 @@ export class Colors {
     }
   }
 
-  getColorTint(color: string, tintKey: string | number) {
-    if (_.isUndefined(tintKey) || isNaN(tintKey as number) || _.isUndefined(color)) {
+  getColorName(colorValue: string) {
+    const color = colorStringValue(colorValue);
+    return ColorName.name(color)[1];
+  }
+
+  getColorTint(colorValue: string | OpaqueColorValue, tintKey: string | number) {
+    if (_.isUndefined(tintKey) || isNaN(tintKey as number) || _.isUndefined(colorValue)) {
       // console.error('"Colors.getColorTint" must accept a color and tintKey params');
-      return color;
+      return colorValue;
     }
+
+    const color = colorStringValue(colorValue);
 
     if (color === 'transparent') {
       return color;
@@ -121,7 +146,13 @@ export class Colors {
     const colorKey = _.findKey(this, (_value, key) => this[key] === color);
 
     if (colorKey) {
-      const requiredColorKey = `${colorKey.slice(0, -2)}${tintKey}`;
+      const colorKeys = [1, 5, 10, 20, 30, 40, 50, 60, 70, 80];
+      const keyIndex = _.indexOf(colorKeys, Number(tintKey));
+      const key =
+        this.shouldSupportDarkMode && Scheme.getSchemeType() === 'dark'
+          ? colorKeys[colorKeys.length - 1 - keyIndex]
+          : tintKey;
+      const requiredColorKey = `${colorKey.slice(0, -2)}${key}`;
       const requiredColor = this[requiredColorKey];
 
       if (_.isUndefined(requiredColor)) {
@@ -132,11 +163,7 @@ export class Colors {
     return this.getTintedColorForDynamicHex(color, tintKey);
   }
 
-  getColorName(color: string) {
-    return ColorName.name(color)[1];
-  }
-
-  getTintedColorForDynamicHex(color: string, tintKey: string | number) {
+  private getTintedColorForDynamicHex(color: string, tintKey: string | number) {
     // Handles dynamic colors (non uilib colors)
     let tintLevel = Math.floor(Number(tintKey) / 10);
     tintLevel = Math.max(1, tintLevel);
@@ -149,16 +176,17 @@ export class Colors {
   generateColorPalette = _.memoize(color => {
     const hsl = Color(color).hsl();
     const lightness = Math.round(hsl.color[2]);
+    const lightColorsThreshold = this.shouldGenerateDarkerPalette(color) ? 5 : 0;
 
     const ls = [hsl.color[2]];
     let l = lightness - 10;
-    while (l >= 20) {
+    while (l >= 20 - lightColorsThreshold) {
       ls.unshift(l);
       l -= 10;
     }
 
     l = lightness + 10;
-    while (l < 100) {
+    while (l < 100 - lightColorsThreshold) {
       ls.push(l);
       l += 10;
     }
@@ -171,10 +199,18 @@ export class Colors {
 
     const sliced = tints.slice(0, 8);
     const adjusted = adjustSaturation(sliced, color);
-    return adjusted || sliced;
+    const palette = adjusted || sliced;
+    return this.shouldSupportDarkMode && Scheme.getSchemeType() === 'dark' ? _.reverse(palette) : palette;
   });
 
-  isDark(color: string) {
+  private shouldGenerateDarkerPalette(color: string) {
+    const hsl = Color(color).hsl();
+    const hue = hsl.color[0];
+    return _.inRange(hue, 51, 184);
+  }
+
+  isDark(colorValue: string | OpaqueColorValue) {
+    const color = colorStringValue(colorValue);
     const lum = tinycolor(color).getLuminance();
     return lum < 0.55;
   }
@@ -190,9 +226,15 @@ export class Colors {
   isTransparent(color?: string) {
     return color && _.toUpper(color) === _.toUpper('transparent');
   }
-  areEqual(colorA: string, colorB: string) {
+  areEqual(colorAValue: string | OpaqueColorValue, colorBValue: string | OpaqueColorValue) {
+    const colorA = colorStringValue(colorAValue);
+    const colorB = colorStringValue(colorBValue);
     return _.toLower(colorA) === _.toLower(colorB);
   }
+}
+
+function colorStringValue(color: string | object) {
+  return color.toString();
 }
 
 function adjustSaturation(colors: string[], color: string) {
@@ -245,7 +287,10 @@ function threeDigitHexToSix(value: string) {
   return value.replace(/./g, '$&$&');
 }
 
-const TypedColors = Colors as ExtendTypeWith<typeof Colors, typeof colorsPalette & typeof themeColors>;
+const TypedColors = Colors as ExtendTypeWith<
+  typeof Colors,
+  typeof colorsPalette & typeof themeColors & typeof DesignTokens
+>;
 const colorObject = new TypedColors();
 colorObject.loadColors(colorsPalette);
 export default colorObject;

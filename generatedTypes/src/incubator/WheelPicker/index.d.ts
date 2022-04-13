@@ -2,20 +2,12 @@ import React from 'react';
 import { TextStyle, ViewStyle } from 'react-native';
 import { ItemProps } from './Item';
 import { TextProps } from '../../components/text';
-export declare enum WheelPickerAlign {
-    CENTER = "center",
-    RIGHT = "right",
-    LEFT = "left"
-}
+import { WheelPickerAlign } from './types';
 export interface WheelPickerProps {
     /**
-     * Initial value (doesn't work with selectedValue)
+     * Initial value
      */
     initialValue?: ItemProps | number | string;
-    /**
-     * The current selected value
-     */
-    selectedValue?: ItemProps | number | string;
     /**
      * Data source for WheelPicker
      */
@@ -70,12 +62,16 @@ export interface WheelPickerProps {
      * Align the content to center, right ot left (default: center)
      */
     align?: WheelPickerAlign;
+    /**
+     * Extra style for the separators
+     */
+    separatorsStyle?: ViewStyle;
     testID?: string;
 }
 declare const _default: React.ComponentClass<WheelPickerProps & {
     useCustomTheme?: boolean | undefined;
 }, any> & {
-    ({ items: propItems, itemHeight, numberOfVisibleRows, activeTextColor, inactiveTextColor, textStyle, label, labelStyle, labelProps, onChange, align, style, children, initialValue, selectedValue, testID }: WheelPickerProps): JSX.Element;
+    ({ items: propItems, itemHeight, numberOfVisibleRows, activeTextColor, inactiveTextColor, textStyle, label, labelStyle, labelProps, onChange, align, style, children, initialValue, separatorsStyle, testID }: WheelPickerProps): JSX.Element;
     alignments: typeof WheelPickerAlign;
     displayName: string;
 };

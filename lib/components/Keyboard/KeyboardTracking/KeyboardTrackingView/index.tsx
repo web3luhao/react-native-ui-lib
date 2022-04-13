@@ -20,6 +20,10 @@ export type KeyboardTrackingViewProps = ViewProps & {
     * Allow control safe area
     */
    useSafeArea?: boolean;
+   /**
+    * Whether or not to include bottom tab bar inset
+    */
+   usesBottomTabs?: boolean;
 
    scrollToFocusedInput?: boolean;
    scrollBehavior?: number;
@@ -37,7 +41,7 @@ export type KeyboardTrackingViewProps = ViewProps & {
    style?: ViewStyle;
 }
 
-const KeyboardTrackingView = ({children, ...others}: KeyboardTrackingViewProps, ref: any) => {
+const KeyboardTrackingView = forwardRef(({children, ...others}: KeyboardTrackingViewProps, ref: any) => {
   const KeyboardTrackingViewContainer = isAndroid ? KeyboardTrackingViewAndroid : KeyboardTrackingViewIOS;
   
   return (
@@ -45,6 +49,6 @@ const KeyboardTrackingView = ({children, ...others}: KeyboardTrackingViewProps, 
       {children}
     </KeyboardTrackingViewContainer>
   );
-};
+});
 
-export default forwardRef(KeyboardTrackingView);
+export default KeyboardTrackingView;

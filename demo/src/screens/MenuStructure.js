@@ -112,6 +112,8 @@ export const navigationData = {
         screen: 'unicorn.components.FaderScreen'
       },
       {title: 'Wizard', tags: 'wizard', screen: 'unicorn.components.WizardScreen'},
+      {title: 'GridList', tags: 'grid list', screen: 'unicorn.components.GridListScreen'},
+      {title: 'SortableGridList', tags: 'sort grid list drag', screen: 'unicorn.components.SortableGridListScreen'},
       {title: 'GridView', tags: 'grid view', screen: 'unicorn.components.GridViewScreen'}
     ]
   },
@@ -135,7 +137,7 @@ export const navigationData = {
         tags: 'KeyboardTracking',
         screen: 'unicorn.nativeComponents.KeyboardTrackingViewScreen'
       },
-      {title: 'KeyboardAccessoryView', tags: 'KeyboardInput', screen: 'unicorn.nativeComponents.KeyboardInputViewScreen'}
+      {title: 'KeyboardAccessoryView', tags: 'KeyboardInput', screen: 'unicorn.nativeComponents.KeyboardAccessoryViewScreen'}
     ]
   },
   AnimationsAndGestures: {
@@ -153,11 +155,11 @@ export const navigationData = {
   Incubator: {
     title: 'Incubator (Experimental)',
     screens: [
-      {title: '(New) ChipsInput', tags: 'chips input', screen: 'unicorn.components.IncubatorChipsInputScreen'},
+      {title: 'ChipsInput (New)', tags: 'chips input', screen: 'unicorn.components.IncubatorChipsInputScreen'},
       {title: 'Native TouchableOpacity', tags: 'touchable native', screen: 'unicorn.incubator.TouchableOpacityScreen'},
-      {title: '(New) Dialog', tags: 'dialog modal popup alert', screen: 'unicorn.incubator.IncubatorDialogScreen'},
-      {title: '(New) TextField', tags: 'text field input', screen: 'unicorn.components.IncubatorTextFieldScreen'},
-      {title: '(New) Toast', tags: 'toast', screen: 'unicorn.components.IncubatorToastScreen'},
+      {title: 'Dialog (New)', tags: 'dialog modal popup alert', screen: 'unicorn.incubator.IncubatorDialogScreen'},
+      {title: 'TextField (New)', tags: 'text field input', screen: 'unicorn.components.IncubatorTextFieldScreen'},
+      {title: 'Toast (New)', tags: 'toast', screen: 'unicorn.components.IncubatorToastScreen'},
       {title: 'ExpandableOverlay', tags: 'text field expandable input picker', screen: 'unicorn.components.IncubatorExpandableOverlayScreen'},
       {title: 'WheelPicker (Incubator)', tags: 'wheel picker spinner experimental', screen: 'unicorn.incubator.WheelPickerScreen'},
       {title: 'Pan View', tags: 'pan swipe drag', screen: 'unicorn.incubator.PanViewScreen'},

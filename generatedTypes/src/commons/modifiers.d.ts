@@ -1,4 +1,5 @@
 import _ from 'lodash';
+import { DesignTokens } from '../style';
 import { BorderRadiusesLiterals } from '../style/borderRadiuses';
 import TypographyPresets from '../style/typographyPresets';
 import { colorsPalette } from '../style/colorsPalette';
@@ -55,7 +56,7 @@ export declare type MarginLiterals = keyof typeof MARGIN_VARIATIONS;
 export declare type NativeMarginModifierKeyType = typeof MARGIN_VARIATIONS[MarginLiterals];
 export declare type FlexLiterals = keyof typeof STYLE_KEY_CONVERTERS;
 export declare type NativeFlexModifierKeyType = typeof STYLE_KEY_CONVERTERS[FlexLiterals];
-export declare type ColorLiterals = keyof typeof colorsPalette;
+export declare type ColorLiterals = keyof (typeof colorsPalette & typeof DesignTokens);
 export declare type TypographyLiterals = keyof typeof TypographyPresets;
 export declare type BorderRadiusLiterals = keyof typeof BorderRadiusesLiterals;
 export declare type AlignmentLiterals = 'row' | 'spread' | 'center' | 'centerH' | 'centerV' | 'left' | 'right' | 'top' | 'bottom';

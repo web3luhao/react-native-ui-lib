@@ -1,5 +1,5 @@
-import { PureComponent, ReactElement, ElementRef } from 'react';
-import { Animated, StyleProp, ViewStyle, PanResponderGestureState, GestureResponderEvent, LayoutChangeEvent, AccessibilityActionEvent, AccessibilityRole, View as RNView, ViewProps } from 'react-native';
+import { PureComponent, ReactElement } from 'react';
+import { Animated, StyleProp, ViewStyle, PanResponderGestureState, GestureResponderEvent, LayoutChangeEvent, AccessibilityActionEvent, AccessibilityRole, ViewProps } from 'react-native';
 export declare type SliderOnValueChange = (value: number) => void;
 export declare type SliderProps = {
     /**
@@ -74,6 +74,10 @@ export declare type SliderProps = {
      * If true the Slider will be disabled and will appear in disabled color
      */
     disabled?: boolean;
+    /**
+     * If true the Slider will stay in LTR mode even if the app is on RTL mode
+     */
+    disableRTL?: boolean;
     /**
      * If true the component will have accessibility features enabled
      */
@@ -172,8 +176,6 @@ export default class Slider extends PureComponent<SliderProps, State> {
     getXForValue(v: number): number;
     getValueForX(x: number): number;
     getRange(): number;
-    setMinTrackRef: (ref: ElementRef<typeof RNView>) => void;
-    setThumbRef: (ref: ElementRef<typeof RNView>) => void;
     calculatedThumbActiveScale: () => number;
     updateTrackStepAndStyle: ({ nativeEvent }: GestureResponderEvent) => void;
     onOrientationChanged: () => void;

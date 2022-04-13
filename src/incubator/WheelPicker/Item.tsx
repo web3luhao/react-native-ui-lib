@@ -5,16 +5,16 @@ import Text, {TextProps} from '../../components/text';
 import TouchableOpacity from '../../components/touchableOpacity';
 import {Colors, Spacings} from '../../../src/style';
 import {asBaseComponent} from '../../commons/new';
+import {WheelPickerAlign} from './types';
+
 
 const AnimatedTouchableOpacity = Animated.createAnimatedComponent(TouchableOpacity);
 const AnimatedText = Animated.createAnimatedComponent(Text);
 
 export interface ItemProps {
   label: string;
-  fakeLabel?: string;
-  fakeLabelStyle?: TextStyle;
-  fakeLabelProps?: TextProps;
   value: string | number;
+  align?: WheelPickerAlign
 }
 
 interface InternalProps extends ItemProps {
@@ -25,8 +25,11 @@ interface InternalProps extends ItemProps {
   inactiveColor?: string;
   style?: TextStyle;
   onSelect: (index: number) => void;
-  testID?: string;
   centerH?: boolean;
+  fakeLabel?: string;
+  fakeLabelStyle?: TextStyle;
+  fakeLabelProps?: TextProps;
+  testID?: string;
 }
 
 const WheelPickerItem = memo(({
@@ -38,11 +41,12 @@ const WheelPickerItem = memo(({
   itemHeight,
   onSelect,
   offset,
-  activeColor = Colors.primary,
-  inactiveColor = Colors.grey20,
+  activeColor = Colors.$textPrimary,
+  inactiveColor = Colors.$textNeutralHeavy,
   style,
   testID,
-  centerH = true
+  centerH = true,
+  align
 }: InternalProps) => {
   const selectItem = useCallback(() => onSelect(index), [index]);
   const itemOffset = index * itemHeight;
@@ -64,8 +68,9 @@ const WheelPickerItem = memo(({
       style={containerStyle}
       key={index}
       centerV
-      centerH={centerH}
-      right={!centerH}
+      centerH={align ? align === WheelPickerAlign.CENTER : centerH}
+      right={align ? align === WheelPickerAlign.RIGHT : !centerH}
+      left={align === WheelPickerAlign.LEFT}
       onPress={selectItem}
       // @ts-ignore reanimated2
       index={index}
@@ -81,7 +86,7 @@ const WheelPickerItem = memo(({
         {label}
       </AnimatedText>
       {fakeLabel && (
-        <Text marginL-s2 marginR-s5 text80M color={'white'} {...fakeLabelProps} style={fakeLabelStyle}>
+        <Text marginL-s2 marginR-s5 text80M $textDefaultLight {...fakeLabelProps} style={fakeLabelStyle}>
           {fakeLabel}
         </Text>
       )}

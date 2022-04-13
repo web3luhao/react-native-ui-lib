@@ -8,14 +8,14 @@ import TabBarItem, {TabControllerItemProps} from './TabBarItem';
 import {Constants, asBaseComponent, forwardRef, BaseComponentInjectedProps, ForwardRefInjectedProps} from '../../commons/new';
 import View from '../view';
 import {Colors, Spacings, Typography} from '../../style';
-import FadedScrollView from './FadedScrollView';
+import FadedScrollView from '../fadedScrollView';
 
 import useScrollToItem from './useScrollToItem';
 import {orientations} from '../../commons/Constants';
 import {useDidUpdate} from 'hooks';
 
 const DEFAULT_HEIGHT = 48;
-const DEFAULT_BACKGROUND_COLOR = Colors.white;
+const DEFAULT_BACKGROUND_COLOR = Colors.$backgroundElevated;
 
 const DEFAULT_LABEL_STYLE = {
   ...Typography.text80M,
@@ -102,6 +102,10 @@ export interface TabControllerBarProps {
    */
   indicatorInsets?: number;
   /**
+   * Send to get a constant width of the indicator (overrides indicatorInsets)
+   */
+  indicatorWidth?: number;
+  /**
    * Additional styles for the container
    */
   containerStyle?: StyleProp<ViewStyle>;
@@ -116,6 +120,8 @@ type ChildProps = React.ReactElement<TabControllerItemProps>;
 interface Props extends TabControllerBarProps, BaseComponentInjectedProps, ForwardRefInjectedProps {
   children?: ChildProps[] | ChildProps;
 }
+
+const FADER_PROPS = {size: 76, tintColor: Colors.$backgroundElevated};
 
 /**
  * @description: TabController's TabBar component
@@ -141,6 +147,7 @@ const TabBar = (props: Props) => {
     centerSelected,
     spreadItems,
     indicatorInsets = Spacings.s4,
+    indicatorWidth,
     containerStyle,
     testID
   } = props;
@@ -204,9 +211,9 @@ const TabBar = (props: Props) => {
           iconColor={iconColor}
           selectedIconColor={selectedIconColor}
           activeBackgroundColor={activeBackgroundColor}
-          key={item.label}
           {...item}
           {...context}
+          key={`${index}_${item.label}`}
           index={index}
           onLayout={onItemLayout}
         />
@@ -228,16 +235,25 @@ const TabBar = (props: Props) => {
 
   const _indicatorTransitionStyle = useAnimatedStyle(() => {
     const value = targetPage.value;
-    const width = interpolate(value,
-      itemsWidthsAnimated.value.map((_v: number, i: number) => i),
-      itemsWidthsAnimated.value.map((v: number) => v - 2 * indicatorInsets));
+    let width, marginHorizontal;
+    if (indicatorWidth) {
+      width = indicatorWidth;
+      marginHorizontal = interpolate(value,
+        itemsWidthsAnimated.value.map((_v: number, i: number) => i),
+        itemsWidthsAnimated.value.map((v: number) => (v - indicatorWidth) / 2));
+    } else {
+      marginHorizontal = indicatorInsets;
+      width = interpolate(value,
+        itemsWidthsAnimated.value.map((_v: number, i: number) => i),
+        itemsWidthsAnimated.value.map((v: number) => v - 2 * indicatorInsets));
+    }
 
     const left = interpolate(value,
       itemsOffsetsAnimated.value.map((_v: any, i: number) => i),
       itemsOffsetsAnimated.value);
 
     return {
-      marginHorizontal: indicatorInsets,
+      marginHorizontal,
       width,
       left
     };
@@ -260,7 +276,6 @@ const TabBar = (props: Props) => {
   }, [containerWidth]);
 
   useDidUpdate(() => {
-    // @ts-expect-error TODO: fix forwardRef Statics
     if (tabBar.current?.isScrollEnabled()) {
       focusIndex(currentPage.value);
     } else {
@@ -270,11 +285,16 @@ const TabBar = (props: Props) => {
   }, [containerWidth]);
 
   return (
-    <View style={_containerStyle} key={key}>
+    <View style={_containerStyle} key={key} bg-$backgroundElevated>
       <FadedScrollView
         // @ts-expect-error
         ref={tabBar}
         horizontal
+        showsHorizontalScrollIndicator={false}
+        showStartFader
+        startFaderProps={FADER_PROPS}
+        showEndFader
+        endFaderProps={FADER_PROPS}
         contentContainerStyle={scrollViewContainerStyle}
         testID={testID}
         onContentSizeChange={onContentSizeChange}
@@ -317,19 +337,19 @@ const styles = StyleSheet.create({
     left: 0,
     width: 70,
     height: 2,
-    backgroundColor: Colors.primary
+    backgroundColor: Colors.$backgroundPrimaryHeavy
   },
   containerShadow: {
     ...Platform.select({
       ios: {
-        shadowColor: Colors.grey10,
+        shadowColor: Colors.black,
         shadowOpacity: 0.05,
         shadowRadius: 2,
         shadowOffset: {height: 6, width: 0}
       },
       android: {
         elevation: 5,
-        backgroundColor: Colors.white
+        backgroundColor: Colors.$backgroundElevated
       }
     })
   },

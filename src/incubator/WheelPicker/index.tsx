@@ -11,27 +11,18 @@ import Fader, {FaderPosition} from '../../components/fader';
 import Item, {ItemProps} from './Item';
 import Text, {TextProps} from '../../components/text';
 import usePresenter from './usePresenter';
+import {WheelPickerAlign} from './types';
 
 const AnimatedRecyclerListView = Animated.createAnimatedComponent(RecyclerListView);
 
 const dataProviderMaker = (items: ItemProps[]) =>
   new DataProvider((item1, item2) => item1.value !== item2.value || item1.label !== item2.label).cloneWithRows(items);
 
-export enum WheelPickerAlign {
-  CENTER = 'center',
-  RIGHT = 'right',
-  LEFT = 'left'
-}
-
 export interface WheelPickerProps {
   /**
-   * Initial value (doesn't work with selectedValue)
+   * Initial value
    */
   initialValue?: ItemProps | number | string;
-  /**
-   * The current selected value
-   */
-  selectedValue?: ItemProps | number | string;
   /**
    * Data source for WheelPicker
    */
@@ -86,6 +77,10 @@ export interface WheelPickerProps {
    * Align the content to center, right ot left (default: center)
    */
   align?: WheelPickerAlign;
+  /**
+   * Extra style for the separators
+   */
+  separatorsStyle?: ViewStyle;
   testID?: string;
 }
 
@@ -93,7 +88,7 @@ const WheelPicker = ({
   items: propItems,
   itemHeight = 44,
   numberOfVisibleRows = 5,
-  activeTextColor = Colors.primary,
+  activeTextColor = Colors.$textPrimary,
   inactiveTextColor,
   textStyle,
   label,
@@ -103,8 +98,8 @@ const WheelPicker = ({
   align = WheelPickerAlign.CENTER,
   style,
   children,
-  initialValue,
-  selectedValue,
+  initialValue = 0,
+  separatorsStyle,
   testID
 }: WheelPickerProps) => {
   const scrollView = useRef<Animated.ScrollView>();
@@ -116,12 +111,10 @@ const WheelPicker = ({
   const {
     height,
     items,
-    shouldControlComponent,
     index: currentIndex,
     getRowItemAtOffset
   } = usePresenter({
     initialValue,
-    selectedValue,
     items: propItems,
     children,
     itemHeight,
@@ -130,7 +123,6 @@ const WheelPicker = ({
 
   const prevInitialValue = useRef(initialValue);
   const prevIndex = useRef(currentIndex);
-  const [scrollOffset, setScrollOffset] = useState(currentIndex * itemHeight);
   const [flatListWidth, setFlatListWidth] = useState(0);
   const keyExtractor = useCallback((item: ItemProps, index: number) => `${item}.${index}`, []);
   const layoutProvider = useMemo(() =>
@@ -153,13 +145,6 @@ const WheelPicker = ({
   const dataProvider = useMemo(() => dataProviderMaker(items), [items]);
 
   useEffect(() => {
-    // This effect enforce the index to be controlled by selectedValue passed by the user
-    if (shouldControlComponent(scrollOffset)) {
-      scrollToIndex(currentIndex, true);
-    }
-  });
-
-  useEffect(() => {
     // This effect making sure to reset index if initialValue has changed
     !isUndefined(initialValue) && scrollToIndex(currentIndex, true);
   }, [currentIndex]);
@@ -171,13 +156,14 @@ const WheelPicker = ({
     } else {
       onChange?.(value, index);
     }
-  }, [initialValue, onChange]);
+  },
+  [initialValue, onChange]);
 
   const onValueChange = useCallback((event: NativeSyntheticEvent<NativeScrollEvent>) => {
-    setScrollOffset(event.nativeEvent.contentOffset.y);
     const {index, value} = getRowItemAtOffset(event.nativeEvent.contentOffset.y);
     _onChange(value, index);
-  }, [_onChange, getRowItemAtOffset]);
+  },
+  [_onChange, getRowItemAtOffset]);
 
   const onMomentumScrollEndAndroid = (index: number) => {
     // handle Android bug: ScrollView does not call 'onMomentumScrollEnd' when scrolled programmatically (https://github.com/facebook/react-native/issues/26661)
@@ -211,7 +197,8 @@ const WheelPicker = ({
 
   const selectItem = useCallback(index => {
     scrollToIndex(index, true);
-  }, [itemHeight]);
+  },
+  [itemHeight]);
 
   const renderItem = useCallback((_type, item, index) => {
     //We have only one view type so not checks are needed here
@@ -232,11 +219,13 @@ const WheelPicker = ({
         testID={`${testID}.item_${index}`}
       />
     );
-  }, [itemHeight]);
+  },
+  [itemHeight]);
 
   const getItemLayout = useCallback((_data, index: number) => {
     return {length: itemHeight, offset: itemHeight * index, index};
-  }, [itemHeight]);
+  },
+  [itemHeight]);
 
   const updateFlatListWidth = useCallback((width: number) => {
     setFlatListWidth(width);
@@ -278,18 +267,19 @@ const WheelPicker = ({
 
   const fader = useMemo(() => (position: FaderPosition) => {
     return <Fader visible position={position} size={60}/>;
-  }, []);
+  },
+  []);
 
   const separators = useMemo(() => {
     return (
       <View absF centerV pointerEvents="none">
-        <View style={styles.separators}/>
+        <View style={[styles.separators, separatorsStyle]}/>
       </View>
     );
   }, []);
 
   return (
-    <View testID={testID} bg-white style={style}>
+    <View testID={testID} bg-$backgroundDefault style={style}>
       <View row centerH>
         <View flexG width="100%">
           <AnimatedRecyclerListView
@@ -368,7 +358,7 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderBottomWidth: 1,
     height: Spacings.s9,
-    borderColor: Colors.grey60
+    borderColor: Colors.$outlineDefault
   },
   label: {
     position: 'absolute',

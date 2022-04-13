@@ -15,8 +15,9 @@ import Modal from '../modal';
 import ExpandableOverlay from '../../incubator/expandableOverlay';
 // import Button from '../../components/button';
 import {TextField} from '../inputs';
+import TextFieldMigrator from '../textField/TextFieldMigrator';
 import NativePicker from './NativePicker';
-import PickerModal from './PickerModal';
+import PickerModal from './PickerItemsList';
 import PickerItem from './PickerItem';
 import PickerContext from './PickerContext';
 import {getItemLabel as getItemLabelPresenter, shouldFilterOut} from './PickerPresenter';
@@ -46,6 +47,10 @@ class Picker extends Component {
      * Temporary prop required for migration to Picker's new API
      */
     migrate: PropTypes.bool,
+    /**
+     * Temporary prop required for inner text field migration
+     */
+    migrateTextField: PropTypes.bool,
     ...TextField.propTypes,
     /**
      * Picker current value in the shape of {value: ..., label: ...}, for custom shape use 'getItemValue' prop
@@ -246,10 +251,9 @@ class Picker extends Component {
     const itemsByValue = _.keyBy(items, 'value');
 
     const {getItemLabel = _.noop} = this.props;
-    return _.chain(value)
-      .map(item => (_.isPlainObject(item) ? getItemLabel(item) || item?.label : itemsByValue[item]?.label))
-      .join(', ')
-      .value();
+    return _.flow(arr =>
+      _.map(arr, item => (_.isPlainObject(item) ? getItemLabel(item) || item?.label : itemsByValue[item]?.label)),
+    arr => _.join(arr, ', '))(value);
   };
 
   getLabel = value => {
@@ -447,7 +451,9 @@ class Picker extends Component {
       topBarProps,
       pickerModalProps,
       value,
-      editable
+      editable,
+      onPress,
+      migrateTextField
     } = this.props;
 
     if (useNativePicker) {
@@ -489,6 +495,7 @@ class Picker extends Component {
           modalProps={modalProps}
           expandableContent={this.renderExpandableModal()}
           renderCustomOverlay={renderCustomModal ? this.renderCustomModal : undefined}
+          onPress={onPress}
           testID={testID}
           {...customPickerProps}
           disabled={editable === false}
@@ -496,7 +503,9 @@ class Picker extends Component {
           {renderPicker ? (
             renderPicker(value, this.getLabel(value))
           ) : (
-            <TextField
+            <TextFieldMigrator
+              migrate={migrateTextField}
+              customWarning="RNUILib Picker component's internal TextField will soon be replaced with a new implementation, in order to start the migration - please pass to Picker the 'migrateTextField' prop"
               ref={forwardedRef}
               {...textInputProps}
               testID={`${testID}.input`}
@@ -505,10 +514,11 @@ class Picker extends Component {
               importantForAccessibility={'no-hide-descendants'}
               value={label}
               selection={Constants.isAndroid ? {start: 0} : undefined}
-              // Disable TextField expandable feature
-              expandable={false}
-              renderExpandable={_.noop}
-              onToggleExpandableModal={_.noop}
+              /* Disable TextField expandable feature */
+              topBarProps={undefined}
+              // expandable={false}
+              // renderExpandable={_.noop}
+              // onToggleExpandableModal={_.noop}
             />
           )}
         </ExpandableOverlay>

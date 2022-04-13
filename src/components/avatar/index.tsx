@@ -13,7 +13,7 @@ import {
 } from 'react-native';
 import memoize from 'memoize-one';
 import {LogService} from '../../services';
-import {Colors} from '../../style';
+import {Colors, BorderRadiuses} from '../../style';
 import {forwardRef, asBaseComponent} from '../../commons/new';
 import {extractAccessibilityProps} from '../../commons/modifiers';
 import Badge, {BadgeProps} from '../badge';
@@ -179,7 +179,7 @@ class Avatar extends PureComponent<AvatarProps> {
   static defaultProps = {
     animate: false,
     size: 50,
-    labelColor: Colors.grey10,
+    labelColor: Colors.$textDefault,
     badgePosition: BadgePosition.TOP_RIGHT
   };
 
@@ -197,17 +197,16 @@ class Avatar extends PureComponent<AvatarProps> {
       height: size,
       alignItems: 'center',
       justifyContent: 'center',
-      borderRadius: size / 2
+      borderRadius: BorderRadiuses.br100
     };
   }
 
   getInitialsContainer(): StyleProp<ViewStyle> {
-    const {size} = this.props;
     return {
       ...StyleSheet.absoluteFillObject,
       alignItems: 'center',
       justifyContent: 'center',
-      borderRadius: size / 2
+      borderRadius: BorderRadiuses.br100
     };
   }
 
@@ -267,7 +266,7 @@ class Avatar extends PureComponent<AvatarProps> {
         <View style={this.getRibbonStyle()}>{customRibbon}</View>
       ) : (
         <View style={[this.getRibbonStyle(), this.styles.ribbon, ribbonStyle]}>
-          <Text numberOfLines={1} text100 white style={[ribbonLabelStyle]}>
+          <Text numberOfLines={1} text100 $textDefaultLight style={[ribbonLabelStyle]}>
             {ribbonLabel}
           </Text>
         </View>
@@ -333,7 +332,7 @@ class Avatar extends PureComponent<AvatarProps> {
     const {
       avatarColors = AvatarHelper.getAvatarColors(),
       hashFunction = AvatarHelper.hashStringToNumber,
-      defaultColor = Colors.grey80
+      defaultColor = Colors.$backgroundNeutralLight
     } = autoColorsConfig || {};
     if (useAutoColors) {
       return this.getBackgroundColor(name, avatarColors, hashFunction, defaultColor);
@@ -371,6 +370,7 @@ class Avatar extends PureComponent<AvatarProps> {
         {...extractAccessibilityProps(this.props)}
       >
         <View
+          testID={`${testID}.container`}
           style={[
             this.getInitialsContainer(),
             {backgroundColor: this.backgroundColor},
@@ -407,7 +407,7 @@ function createStyles(props: AvatarProps) {
       lineHeight: undefined
     },
     ribbon: {
-      backgroundColor: Colors.primary,
+      backgroundColor: Colors.$backgroundPrimaryHeavy,
       paddingHorizontal: 6,
       paddingVertical: 3
     }
