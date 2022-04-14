@@ -283,60 +283,37 @@ const WheelPicker = ({
       <View row centerH>
         <View flexG width="100%">
           <AnimatedRecyclerListView
-            // testID={`${testID}.list`}
-            // height={height}
-            // data={items}
-            // @ts-ignore reanimated2
-            // keyExtractor={keyExtractor}
-            // scrollEventThrottle={100}
-            // @ts-ignore reanimated2
-            // onScroll={scrollHandler}
-            // onMomentumScrollEnd={onValueChange}
-            // showsVerticalScrollIndicator={false}
-            // onLayout={scrollToPassedIndex}
-            // @ts-ignore
-            // ref={scrollView}
-            // contentContainerStyle={contentContainerStyle}
-            // snapToInterval={itemHeight}
-            // decelerationRate={Constants.isAndroid ? 0.98 : 'normal'}
-            // rowRenderer={renderItem}
-            // getItemLayout={getItemLayout}
-            // initialScrollIndex={currentIndex}
-            // onContentSizeChange={updateFlatListWidth}
-            /* This fixes an issue with RTL when centering flatlist content using alignSelf */
-            // centerContent={align === 'center' && Constants.isRTL}
-
             testID={`${testID}.list`}
-            // @ts-ignore
             ref={scrollView}
-            contentContainerStyle={contentContainerStyle}
-            // contentContainerStyle={{height: 200}}
-            // style={{height: 200}}
-            scrollViewProps={{
-              onContentSizeChange: updateFlatListWidth,
-              height,
-              scrollEventThrottle: 100,
-              snapToInterval: itemHeight
-              // containerStyle: {width: flatListWidth}
-              // centerContent: align === 'center' && Constants.isRTL
-              // snapToInterval: itemHeight
-              // refreshControl: (
-              //   <RefreshControl
-              //     refreshing={loaded && isLoading}
-              //     onRefresh={() => refresh()}
-              //   />
-              // ),
-            }}
-            // renderFooter={() => <RenderFooter loading={isLoadingMore} />}
-            // onEndReached={() => loadMore()}
-            // onEndReachedThreshold={1}
-            // externalScrollView={ExternalScrollView}
             onScroll={scrollHandler}
             layoutProvider={layoutProvider}
             dataProvider={dataProvider}
             rowRenderer={renderItem}
-            // initialOffset={400}
-            // externalScrollView={ExternalScrollView}
+            // onLayout={scrollToPassedIndex}
+            // initialScrollIndex={currentIndex}
+            initialRenderIndex={scrollToPassedIndex}
+            // @ts-ignore reanimated2
+            // keyExtractor={keyExtractor}
+            // @ts-ignore reanimated2
+
+            // @ts-ignore
+            // ref={scrollView}
+            // contentContainerStyle={contentContainerStyle}
+            // getItemLayout={getItemLayout}
+
+            contentContainerStyle={contentContainerStyle}
+            scrollViewProps={{
+              onContentSizeChange: updateFlatListWidth,
+              height,
+              scrollEventThrottle: 100,
+              snapToInterval: itemHeight,
+              showsVerticalScrollIndicator: false,
+              onMomentumScrollEnd: onValueChange,
+              // This fixes an issue with RTL when centering flatlist content using alignSelf
+              centerContent: align === 'center' && Constants.isRTL,
+              decelerationRate: Constants.isAndroid ? 0.98 : 'normal'
+              // containerStyle: {width: flatListWidth}
+            }}
           />
         </View>
       </View>
