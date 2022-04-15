@@ -6,8 +6,12 @@ const BABEL_INDEX_EXPORTS_OPTIONS = `--config-file ./src/.babelrc.exports.js`;
 
 console.info('## Start RNUILib Build ##');
 
-console.info('## Build Typescript ##');
-childProcess.execSync('tsc --p tsconfig.build.json');
+try {
+  console.info('## Build Typescript ##');
+  childProcess.execSync('tsc --p tsconfig.build.json');
+} catch (error) {
+  console.error('Typescript build failed: ', error);
+}
 
 console.info('## Build src files - convert TS to JS files ##');
 childProcess.execSync(`./node_modules/.bin/babel src --out-dir src ${BABEL_OPTIONS}`);
