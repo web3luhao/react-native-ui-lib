@@ -11,11 +11,12 @@ interface Props {
   onDragStart?: (event: GestureStateChangeEvent<PanGestureHandlerEventPayload>) => void;
   onDragUpdate?: (event: GestureUpdateEvent<PanGestureHandlerEventPayload>) => void;
   onDragEnd?: () => void;
+  onFinalize?: () => void;
   hapticComponentName: string | null;
 }
 
 const useDragAfterLongPressGesture = (props: Props) => {
-  const {onDragStart, onDragUpdate, onDragEnd, hapticComponentName} = props;
+  const {onDragStart, onDragUpdate, onDragEnd, onFinalize, hapticComponentName} = props;
 
   const isDragging = useSharedValue(false);
   const isLongPressed = useSharedValue<boolean>(false);
@@ -60,6 +61,7 @@ const useDragAfterLongPressGesture = (props: Props) => {
       if (isDragging.value) {
         isDragging.value = false;
         isLongPressed.value = false;
+        onFinalize?.();
       }
     });
 

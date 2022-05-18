@@ -1,6 +1,6 @@
 import React, {PropsWithChildren, useCallback} from 'react';
 import {LayoutChangeEvent} from 'react-native';
-import {Gesture, GestureDetector} from 'react-native-gesture-handler';
+import {GestureDetector, GestureUpdateEvent, PanGestureHandlerEventPayload} from 'react-native-gesture-handler';
 import {
   runOnJS,
   useAnimatedReaction,
@@ -14,6 +14,7 @@ import {useDidUpdate} from 'hooks';
 import usePresenter, {animationConfig} from './usePresenter';
 import {SortableItemProps} from './types';
 import View from '../view';
+import useDragAfterLongPressGesture from '../sortableList/useDragAfterLongPressGesture';
 
 function SortableItem(props: PropsWithChildren<SortableItemProps & ReturnType<typeof usePresenter>>) {
   const {
@@ -32,8 +33,6 @@ function SortableItem(props: PropsWithChildren<SortableItemProps & ReturnType<ty
   const translateX = useSharedValue(0);
   const translateY = useSharedValue(0);
 
-  const isFloating = useSharedValue(false);
-  const isDragging = useSharedValue(false);
   const tempItemsOrder = useSharedValue(itemsOrder.value);
   const tempTranslateX = useSharedValue(0);
   const tempTranslateY = useSharedValue(0);
@@ -62,13 +61,13 @@ function SortableItem(props: PropsWithChildren<SortableItemProps & ReturnType<ty
           if (dataManuallyChanged.value) {
             translateX.value = 0;
             translateY.value = 0;
-          /* Reset with an animation when the change id due to user reordering */
+            /* Reset with an animation when the change id due to user reordering */
           } else {
             translateX.value = withTiming(0, animationConfig);
             translateY.value = withTiming(0, animationConfig);
           }
           dataManuallyChanged.value = false;
-        /* Handle an order change, animate item to its new position  */
+          /* Handle an order change, animate item to its new position  */
         } else if (newOrder !== prevOrder) {
           const translation = getTranslationByOrderChange(newOrder, prevOrder);
           translateX.value = withTiming(translateX.value + translation.x, animationConfig);
@@ -83,71 +82,58 @@ function SortableItem(props: PropsWithChildren<SortableItemProps & ReturnType<ty
     updateItemLayout({width, height});
   }, []);
 
-  const longPressGesture = Gesture.LongPress()
-    .onStart(() => {
-      isFloating.value = true;
-    })
-    .onTouchesCancelled(() => {
-      if (!isDragging.value) {
-        isFloating.value = false;
+  const onDragStart = useCallback(() => {
+    'worklet';
+    tempTranslateX.value = translateX.value;
+    tempTranslateY.value = translateY.value;
+    tempItemsOrder.value = itemsOrder.value;
+  }, []);
+
+  const onDragUpdate = useCallback((event: GestureUpdateEvent<PanGestureHandlerEventPayload>) => {
+    'worklet';
+    translateX.value = tempTranslateX.value + event.translationX;
+    translateY.value = tempTranslateY.value + event.translationY;
+
+    // Swapping items
+    const oldOrder = getItemOrderById(itemsOrder.value, id);
+    const newOrder = getOrderByPosition(translateX.value, translateY.value) + initialIndex.value;
+
+    if (oldOrder !== newOrder) {
+      const itemIdToSwap = getIdByItemOrder(itemsOrder.value, newOrder);
+
+      if (itemIdToSwap !== undefined) {
+        const newItemsOrder = [...itemsOrder.value];
+        newItemsOrder[newOrder] = id;
+        newItemsOrder[oldOrder] = itemIdToSwap;
+        itemsOrder.value = newItemsOrder;
       }
-    })
-    .minDuration(250);
+    }
+  }, []);
 
-  const dragGesture = Gesture.Pan()
-    .manualActivation(true)
-    .onTouchesMove((_e, state) => {
-      if (isFloating.value) {
-        isDragging.value = true;
-        state.activate();
-      } else {
-        isDragging.value = false;
-        state.fail();
-      }
-    })
-    .onStart(() => {
-      tempTranslateX.value = translateX.value;
-      tempTranslateY.value = translateY.value;
-      tempItemsOrder.value = itemsOrder.value;
-    })
-    .onUpdate(event => {
-      translateX.value = tempTranslateX.value + event.translationX;
-      translateY.value = tempTranslateY.value + event.translationY;
+  const onDragEnd = useCallback(() => {
+    'worklet';
+    const translation = getTranslationByOrderChange(getItemOrderById(itemsOrder.value, id),
+      getItemOrderById(tempItemsOrder.value, id));
 
-      // Swapping items
-      const oldOrder = getItemOrderById(itemsOrder.value, id);
-      const newOrder = getOrderByPosition(translateX.value, translateY.value) + initialIndex.value;
+    translateX.value = withTiming(tempTranslateX.value + translation.x, animationConfig);
+    translateY.value = withTiming(tempTranslateY.value + translation.y, animationConfig);
+  }, []);
 
-      if (oldOrder !== newOrder) {
-        const itemIdToSwap = getIdByItemOrder(itemsOrder.value, newOrder);
+  const onFinalize = useCallback(() => {
+    'worklet';
+    if (tempItemsOrder.value.toString() !== itemsOrder.value.toString()) {
+      runOnJS(onChange)();
+    }
+  }, []);
 
-        if (itemIdToSwap !== undefined) {
-          const newItemsOrder = [...itemsOrder.value];
-          newItemsOrder[newOrder] = id;
-          newItemsOrder[oldOrder] = itemIdToSwap;
-          itemsOrder.value = newItemsOrder;
-        }
-      }
-    })
-    .onEnd(() => {
-      const translation = getTranslationByOrderChange(getItemOrderById(itemsOrder.value, id),
-        getItemOrderById(tempItemsOrder.value, id));
-
-      translateX.value = withTiming(tempTranslateX.value + translation.x, animationConfig);
-      translateY.value = withTiming(tempTranslateY.value + translation.y, animationConfig);
-    })
-    .onFinalize(() => {
-      if (isDragging.value) {
-        isDragging.value = false;
-        isFloating.value = false;
-        if (tempItemsOrder.value.toString() !== itemsOrder.value.toString()) {
-          runOnJS(onChange)();
-        }
-      }
-    })
-    .simultaneousWithExternalGesture(longPressGesture);
-
-  const gesture = Gesture.Race(dragGesture, longPressGesture);
+  const disableHaptic = false;
+  const {dragAfterLongPressGesture, isFloating} = useDragAfterLongPressGesture({
+    onDragStart,
+    onDragUpdate,
+    onDragEnd,
+    onFinalize,
+    hapticComponentName: disableHaptic ? null : 'SortableGridList'
+  });
 
   const animatedStyle = useAnimatedStyle(() => {
     const scale = withSpring(isFloating.value ? 1.1 : 1);
@@ -162,7 +148,7 @@ function SortableItem(props: PropsWithChildren<SortableItemProps & ReturnType<ty
   return (
     <View reanimated style={[style, animatedStyle]} onLayout={onLayout}>
       {/* @ts-expect-error related to children type issue that started on react 18 */}
-      <GestureDetector gesture={gesture}>
+      <GestureDetector gesture={dragAfterLongPressGesture}>
         <View>{props.children}</View>
       </GestureDetector>
     </View>
