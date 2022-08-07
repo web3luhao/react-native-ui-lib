@@ -21,7 +21,7 @@ export interface AsBaseComponentOptions {
 const EMPTY_MODIFIERS = {};
 
 function asBaseComponent<PROPS, STATICS = {}>(WrappedComponent: React.ComponentType<any>,
-  options: AsBaseComponentOptions = {}): React.ComponentClass<PROPS & ThemeComponent2> & STATICS {
+  options: AsBaseComponentOptions = {}): React.ComponentClass<PROPS & ThemeComponent> & STATICS {
   class BaseComponent extends UIComponent {
     static displayName: string | undefined;
     static propTypes: any;

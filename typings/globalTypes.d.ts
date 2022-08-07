@@ -15,6 +15,6 @@ interface Extendable {
   [key: string]: any;
 }
 
-interface ThemeComponent2 {
+interface ThemeComponent {
   useCustomTheme?: boolean;
 }
